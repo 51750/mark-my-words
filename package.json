@@ -1,7 +1,7 @@
 {
   "name": "mark-my-words",
   "version": "1.2.0",
-  "description": "Browser extension to learn languages by highlighting and translating words on any page.",
+  "description": "Highlighting and translating words on any page.",
   "scripts": {
     "build": "mkdir -p dist && zip -r dist/mark-my-words-v$npm_package_version.zip manifest.json icons popup scripts styles.css -x \"*.DS_Store\" \"dist/*\""
   },
