@@ -28,7 +28,7 @@
 
 ## 📖 Usage
 
-1.  **Select & Save**: Highlight any text on a webpage. A floating "Add to Vocabulary" button will appear. Click it to translate and save.
+1.  **Select & Save**: Highlight any text on a webpage. A floating "Mark it" button will appear. Click it to translate and save.
 2.  **Review**: Click the extension icon to view your list.
     -   Use the **Toggle Switch** to filter between "Current Page" and "All".
     -   Use the **Export** button to download your list.
