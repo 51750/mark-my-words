@@ -45,6 +45,18 @@ header {
   align-items: center;
 }
 
+.header-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
 h1 {
   margin: 0;
   font-size: 18px;
