@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const newColorPicker = document.getElementById('new-color-picker');
   const addColorBtn = document.getElementById('add-color-btn');
   const backBtn = document.getElementById('back-btn');
+  const resetBtn = document.getElementById('reset-btn');
 
   let currentPalette = ['#10b981', '#f59e0b', '#ef4444'];
 
@@ -87,6 +88,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // Reset to factory defaults
+  resetBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset all settings to factory defaults? This will not delete your saved vocabulary.')) {
+      const defaultSettings = {
+        themeColor: '#6366f1',
+        colorPalette: ['#10b981', '#f59e0b', '#ef4444'],
+        sourceLanguage: 'auto',
+        targetLanguage: 'zh-CN'
+      };
+
+      chrome.storage.local.set(defaultSettings, () => {
+        // Update UI
+        themeColorInput.value = defaultSettings.themeColor;
+        themeColorValue.textContent = defaultSettings.themeColor.toUpperCase();
+        applyTheme(defaultSettings.themeColor);
+        currentPalette = defaultSettings.colorPalette;
+        renderPalette();
+
+        // Notify all tabs
+        notifyUpdate('updateColor', defaultSettings.themeColor);
+        notifyUpdate('updatePalette', defaultSettings.colorPalette);
+
+        alert('Settings have been reset to factory defaults.');
+      });
+    }
+  });
 
   backBtn.addEventListener('click', () => {
     window.location.href = '../popup/popup.html';

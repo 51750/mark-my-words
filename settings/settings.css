@@ -193,3 +193,22 @@ button {
 .secondary-btn:hover {
   background-color: #f9fafb;
 }
+
+.danger-btn {
+  background-color: transparent;
+  color: var(--danger);
+  border: 1px solid #fee2e2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.danger-btn:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.danger-btn svg {
+  width: 16px;
+  height: 16px;
+}
