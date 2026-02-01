@@ -12,8 +12,18 @@ let colorPalette = ['#10b981', '#f59e0b', '#ef4444'];
 
 // Initialize styles and elements
 function init() {
-  createFAB();
-  loadSavedWords();
+  chrome.storage.local.get(['disabledSites'], (result) => {
+    const disabledSites = result.disabledSites || [];
+    const currentHostname = window.location.hostname;
+
+    if (disabledSites.includes(currentHostname)) {
+      console.log('Mark My Words is disabled on this site.');
+      return;
+    }
+
+    createFAB();
+    loadSavedWords();
+  });
 }
 
 function loadSavedWords() {
@@ -504,8 +514,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'updatePalette') {
     colorPalette = request.palette;
     updateFabPalette();
+  } else if (request.action === 'toggleExtension') {
+    if (request.disabled) {
+      // Remove features
+      hideFab();
+      removeHighlightsFromPage();
+      const container = document.getElementById('vb-fab-container');
+      if (container) container.remove();
+      fab = null;
+      if (observer) observer.disconnect();
+    } else {
+      // Enable features
+      if (!fab) {
+        createFAB();
+        loadSavedWords();
+      }
+    }
   }
 });
+
+function removeHighlightsFromPage() {
+  const wrappers = document.querySelectorAll('.vb-wrap');
+  wrappers.forEach(wrap => {
+    const highlight = wrap.querySelector('.vb-highlight');
+    if (highlight) {
+      const text = document.createTextNode(highlight.textContent);
+      wrap.parentNode.replaceChild(text, wrap);
+    }
+  });
+}
 
 // Event Listeners for Selection
 document.addEventListener('mouseup', (e) => {

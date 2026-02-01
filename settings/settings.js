@@ -114,7 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         colorPalette: ['#10b981', '#f59e0b', '#ef4444'],
         sourceLanguage: 'auto',
         targetLanguage: 'zh-CN',
-        autoTranslate: true
+        autoTranslate: true,
+        disabledSites: []
       };
 
       chrome.storage.local.set(defaultSettings, () => {

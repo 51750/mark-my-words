@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetLanguageSelect = document.getElementById('target-language');
   const languageRow = document.querySelector('.language-row');
   const settingsBtn = document.getElementById('settings-btn');
+  const disableSiteBtn = document.getElementById('disable-site-btn');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
@@ -79,9 +80,68 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
       currentUrl = tabs[0].url;
+      try {
+        const url = new URL(currentUrl);
+        const hostname = url.hostname;
+
+        // Check if current site is disabled
+        chrome.storage.local.get(['disabledSites'], (result) => {
+          const disabledSites = result.disabledSites || [];
+          const isDisabled = disabledSites.includes(hostname);
+          updateDisableBtnUI(isDisabled);
+
+          // Add listener for clicking disable button
+          disableSiteBtn.addEventListener('click', () => {
+            toggleSiteDisabled(hostname);
+          });
+        });
+      } catch (e) {
+        disableSiteBtn.style.display = 'none'; // Not a valid URL for disabling
+      }
       loadWords();
     }
   });
+
+  function updateDisableBtnUI(isDisabled) {
+    if (!disableSiteBtn) return;
+    if (isDisabled) {
+      disableSiteBtn.textContent = 'Enable';
+      disableSiteBtn.classList.add('active');
+    } else {
+      disableSiteBtn.textContent = 'Disable';
+      disableSiteBtn.classList.remove('active');
+    }
+  }
+
+  function toggleSiteDisabled(hostname) {
+    chrome.storage.local.get(['disabledSites'], (result) => {
+      let disabledSites = result.disabledSites || [];
+      const isDisabled = disabledSites.includes(hostname);
+
+      if (isDisabled) {
+        disabledSites = disabledSites.filter(s => s !== hostname);
+      } else {
+        disabledSites.push(hostname);
+      }
+
+      chrome.storage.local.set({ disabledSites }, () => {
+        const nowDisabled = !isDisabled;
+        updateDisableBtnUI(nowDisabled);
+
+        // Notify content script
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              action: 'toggleExtension',
+              disabled: nowDisabled
+            }).catch(() => {
+              // Tab might not have content script loaded
+            });
+          }
+        });
+      });
+    });
+  }
 
   // Toggle Listener
   filterToggle.addEventListener('change', (e) => {

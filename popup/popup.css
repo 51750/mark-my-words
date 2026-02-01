@@ -410,3 +410,23 @@ button {
   background-color: #f9fafb;
   border-color: #d1d5db;
 }
+
+.tertiary-btn {
+  width: 100%;
+  background-color: #f9fafb;
+  color: var(--text-sub);
+  border: 1px solid #e5e7eb;
+  margin-top: 4px;
+}
+
+.tertiary-btn:hover {
+  background-color: #f3f4f6;
+  color: var(--text-main);
+  border-color: #d1d5db;
+}
+
+.tertiary-btn.active {
+  background-color: #fff1f2;
+  color: var(--danger);
+  border-color: #fecaca;
+}

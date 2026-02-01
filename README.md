@@ -9,6 +9,7 @@
 -   **Contextual Highlighting**: Select any text to translate and save it. The extension automatically highlights this word on the current page and any future pages you visit.
 -   **Inline Translation**: View translations instantly by hovering over highlighted words.
 -   **Multi-Color Organization**: Choose from a customizable color palette when marking words to organize by category, difficulty, or any system you prefer.
+-   **Site-Specific Disabling**: Easily disable the extension on specific websites directly from the popup. Great for avoiding interference on sensitive or complex sites.
 -   **Smart Management**:
     -   **Edit**: Click the translation label to modify it instantly.
     -   **Delete**: Click the highlighted word to remove it. Changes sync immediately across the page.
