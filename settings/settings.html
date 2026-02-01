@@ -27,22 +27,31 @@
     <main>
       <section>
         <h2>Quick Tips</h2>
-        <div class="tips-container">
+        <div class="tips-container compact">
           <div class="tip-item">
-            <div class="tip-text">
-              <strong>Edit:</strong> Click a translation bubble on the page to modify its text.
-            </div>
+            <strong>Edit:</strong>
+            <span>Click a translation bubble to modify text.</span>
           </div>
           <div class="tip-item">
-            <div class="tip-text">
-              <strong>Delete:</strong> Click the highlighted word on the page to remove it from your vocabulary.
-            </div>
+            <strong>Delete:</strong>
+            <span>Click the highlighted word to remove it.</span>
           </div>
           <div class="tip-item">
-            <div class="tip-text">
-              <strong>Colors:</strong> Use the palette next to "Mark It" to organize words by category or difficulty.
-            </div>
+            <strong>Colors:</strong>
+            <span>Use the palette to organize words.</span>
           </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Highlight Color Palette</h2>
+        <p class="description">Manage the list of colors available when marking words.</p>
+        <div id="palette-list" class="palette-grid">
+          <!-- Palette items will be injected here -->
+        </div>
+        <div class="add-color-container">
+          <input type="color" id="new-color-picker" value="#10b981">
+          <button id="add-color-btn" class="secondary-btn">Add Color</button>
         </div>
       </section>
 
@@ -71,18 +80,6 @@
             <input type="checkbox" id="auto-translate-toggle" checked>
             <span class="toggle-slider"></span>
           </label>
-        </div>
-      </section>
-
-      <section>
-        <h2>Highlight Color Palette</h2>
-        <p class="description">Manage the list of colors available when marking words.</p>
-        <div id="palette-list" class="palette-grid">
-          <!-- Palette items will be injected here -->
-        </div>
-        <div class="add-color-container">
-          <input type="color" id="new-color-picker" value="#10b981">
-          <button id="add-color-btn" class="secondary-btn">Add Color</button>
         </div>
       </section>
 

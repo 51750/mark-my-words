@@ -267,3 +267,28 @@ input:checked + .toggle-slider {
 input:checked + .toggle-slider::before {
   transform: translateX(16px);
 }
+
+
+.tips-container.compact {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f8fafc;
+  border: 1px dashed #e5e7eb;
+  border-radius: 6px;
+  padding: 6px 8px;
+  max-width: 360px;
+}
+
+.tips-container.compact .tip-item {
+  line-height: 1.4;
+}
+
+.tips-container.compact .tip-item + .tip-item {
+  margin-top: 4px;
+}
+
+.tips-container.compact strong {
+  color: #374151;
+  font-weight: 600;
+  margin-right: 4px;
+}
