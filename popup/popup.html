@@ -47,15 +47,28 @@
     </main>
 
     <footer>
-      <button id="export-btn" class="secondary-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
-          height="16">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Export
-      </button>
-      <button id="clear-all" class="danger-btn">Clear</button>
+      <div class="footer-left">
+        <select id="target-language" title="Target Language">
+          <option value="zh-CN">Chinese (Simplified)</option>
+          <option value="en">English</option>
+          <option value="ja">Japanese</option>
+          <option value="fr">French</option>
+          <option value="es">Spanish</option>
+          <option value="de">German</option>
+          <option value="ko">Korean</option>
+        </select>
+      </div>
+      <div class="footer-right">
+        <button id="export-btn" class="secondary-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+            height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Export
+        </button>
+        <button id="clear-all" class="danger-btn">Clear</button>
+      </div>
     </footer>
 
     <script src="popup.js"></script>

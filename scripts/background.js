@@ -10,8 +10,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function translateText(text) {
+  // Get preferred target language from storage
+  const result = await chrome.storage.local.get(['targetLanguage']);
+  const targetLang = result.targetLanguage || 'zh-CN';
   const sourceLang = 'auto';
-  const targetLang = 'zh-CN'; // Default to Simplified Chinese as per user locale implication
 
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
@@ -23,8 +25,6 @@ async function translateText(text) {
     const data = await response.json();
 
     // The structure returned by this unofficial API is a nested array.
-    // data[0] contains the translation segments.
-    // Each segment is also an array where index 0 is the translated text.
     if (data && data[0]) {
       const translatedText = data[0].map(segment => segment[0]).join('');
       return { translatedText };

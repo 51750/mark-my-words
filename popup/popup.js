@@ -5,11 +5,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearAllBtn = document.getElementById('clear-all');
   const filterToggle = document.getElementById('filter-toggle');
   const exportBtn = document.getElementById('export-btn');
+  const languageSelect = document.getElementById('target-language');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
   // Default showAll to false (unchecked) -> Current Page only
   let showAll = false;
+
+  // Load saved language preference
+  chrome.storage.local.get(['targetLanguage'], (result) => {
+    if (result.targetLanguage) {
+      languageSelect.value = result.targetLanguage;
+    }
+  });
+
+  // Language Change Listener
+  languageSelect.addEventListener('change', (e) => {
+    chrome.storage.local.set({ targetLanguage: e.target.value });
+  });
 
   // Get current tab URL first
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
