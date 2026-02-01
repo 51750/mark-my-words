@@ -1,6 +1,6 @@
 # Mark My Words
-![Mark My Words Demo](demo.png)
-
+![Mark My Words Demo](demos/page.png)
+![Notes](demos/notes.png)
 ## ✨ Features
 
 -   **Contextual Highlighting**: Select any text to translate and save it. The extension automatically highlights this word on the current page and any future pages you visit.
