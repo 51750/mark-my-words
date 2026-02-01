@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const filterToggle = document.getElementById('filter-toggle');
   const exportBtn = document.getElementById('export-btn');
   const languageSelect = document.getElementById('target-language');
-  const helpBtn = document.getElementById('help-btn');
   const tipsOuter = document.getElementById('tips-outer');
   const settingsBtn = document.getElementById('settings-btn');
 
@@ -14,11 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUrl = '';
   // Default showAll to false (unchecked) -> Current Page only
   let showAll = false;
-
-  // Toggle Help Tips
-  helpBtn.addEventListener('click', () => {
-    tipsOuter.classList.toggle('hidden');
-  });
 
   // Load saved preferences
   chrome.storage.local.get(['targetLanguage', 'themeColor'], (result) => {
