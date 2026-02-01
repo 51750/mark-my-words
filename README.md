@@ -1,7 +1,7 @@
 # Mark My Words
 
 ![Mark My Words Demo](screenshot/page.png)
-<img src="screenshot/notes.png" alt="Notes" width="350">
+![Screenshot](screenshot/screenshot.png)
 
 ## ✨ Features
 
