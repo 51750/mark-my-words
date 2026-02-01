@@ -10,10 +10,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function translateText(text) {
-  // Get preferred target language from storage
-  const result = await chrome.storage.local.get(['targetLanguage']);
+  // Get preferred source and target languages from storage
+  const result = await chrome.storage.local.get(['sourceLanguage', 'targetLanguage']);
+  const sourceLang = result.sourceLanguage || 'auto';
   const targetLang = result.targetLanguage || 'zh-CN';
-  const sourceLang = 'auto';
 
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 

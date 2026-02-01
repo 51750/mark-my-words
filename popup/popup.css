@@ -324,23 +324,33 @@ footer {
   background: var(--card-bg);
   border-top: 1px solid #f3f4f6;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.footer-left {
-  flex: 1;
-  max-width: 140px;
-}
-
-.footer-right {
+.language-row {
   display: flex;
+  align-items: center;
   gap: 8px;
+  width: 100%;
 }
 
-#target-language {
+.language-arrow {
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
   width: 100%;
+}
+
+#source-language,
+#target-language {
+  flex: 1;
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
@@ -353,20 +363,16 @@ footer {
   transition: all 0.2s;
 }
 
+#source-language:hover,
 #target-language:hover {
   border-color: var(--primary-hover);
   background-color: #fff;
 }
 
+#source-language:focus,
 #target-language:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
-}
-
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 button {

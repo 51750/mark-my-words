@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearAllBtn = document.getElementById('clear-all');
   const filterToggle = document.getElementById('filter-toggle');
   const exportBtn = document.getElementById('export-btn');
-  const languageSelect = document.getElementById('target-language');
-  const tipsOuter = document.getElementById('tips-outer');
+  const sourceLanguageSelect = document.getElementById('source-language');
+  const targetLanguageSelect = document.getElementById('target-language');
   const settingsBtn = document.getElementById('settings-btn');
 
   let fullVocabulary = []; // Store all data
@@ -15,17 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let showAll = false;
 
   // Load saved preferences
-  chrome.storage.local.get(['targetLanguage', 'themeColor'], (result) => {
+  chrome.storage.local.get(['sourceLanguage', 'targetLanguage', 'themeColor'], (result) => {
+    if (result.sourceLanguage) {
+      sourceLanguageSelect.value = result.sourceLanguage;
+    }
     if (result.targetLanguage) {
-      languageSelect.value = result.targetLanguage;
+      targetLanguageSelect.value = result.targetLanguage;
     }
     if (result.themeColor) {
       applyThemeToPopup(result.themeColor);
     }
   });
 
-  // Language Change Listener
-  languageSelect.addEventListener('change', (e) => {
+  // Language Change Listeners
+  sourceLanguageSelect.addEventListener('change', (e) => {
+    chrome.storage.local.set({ sourceLanguage: e.target.value });
+  });
+
+  targetLanguageSelect.addEventListener('change', (e) => {
     chrome.storage.local.set({ targetLanguage: e.target.value });
   });
 
