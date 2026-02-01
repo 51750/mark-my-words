@@ -6,11 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const filterToggle = document.getElementById('filter-toggle');
   const exportBtn = document.getElementById('export-btn');
   const languageSelect = document.getElementById('target-language');
+  const helpBtn = document.getElementById('help-btn');
+  const tipsOuter = document.getElementById('tips-outer');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
   // Default showAll to false (unchecked) -> Current Page only
   let showAll = false;
+
+  // Toggle Help Tips
+  helpBtn.addEventListener('click', () => {
+    tipsOuter.classList.toggle('hidden');
+  });
 
   // Load saved language preference
   chrome.storage.local.get(['targetLanguage'], (result) => {

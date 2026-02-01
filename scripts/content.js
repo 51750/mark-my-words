@@ -139,9 +139,11 @@ function highlightSavedWords(vocabulary) {
       const highlight = document.createElement('span');
       highlight.className = 'vb-highlight';
       highlight.textContent = foundWord;
+      highlight.title = 'Click to remove';
 
       // Add Edit Event to Caption
       cap.style.pointerEvents = 'auto'; // Ensure it's clickable
+      cap.title = 'Click to edit';
       cap.addEventListener('click', (e) => {
         e.stopPropagation();
         const newTrans = prompt('Update translation:', translation);
@@ -286,9 +288,11 @@ function highlightSelection(range, translation) {
     const highlight = document.createElement('span');
     highlight.className = 'vb-highlight';
     highlight.textContent = range.toString();
+    highlight.title = 'Click to remove';
 
     // Add Edit Event to Caption
     cap.style.pointerEvents = 'auto';
+    cap.title = 'Click to edit';
     cap.addEventListener('click', (e) => {
       e.stopPropagation();
       const currentTrans = cap.textContent;

@@ -51,6 +51,64 @@ header {
   gap: 10px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: #f3f4f6;
+  color: var(--primary);
+}
+
+#tips-outer {
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  margin: 0 20px 12px; /* aligns with padding */
+}
+
+#tips-outer.hidden {
+  display: none;
+}
+
+.tips-content {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tip-row {
+  font-size: 11px;
+  color: #4c1d95;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tip-row span {
+  font-size: 14px;
+}
+
+.tip-row strong {
+  margin-right: 2px;
+}
+
 .header-logo {
   width: 24px;
   height: 24px;

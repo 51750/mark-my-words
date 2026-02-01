@@ -18,11 +18,26 @@
           <img src="../icons/icon48.png" alt="Logo" class="header-logo">
           <h1>Mark My Words</h1>
         </div>
-        <label class="toggle-container" title="Toggle between Current Page and All Words">
-          <span class="toggle-text">All</span>
-          <input type="checkbox" id="filter-toggle">
-          <span class="toggle-slider"></span>
-        </label>
+        <div class="header-right">
+          <label class="toggle-container" title="Toggle between Current Page and All Words">
+            <span class="toggle-text">All</span>
+            <input type="checkbox" id="filter-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <button id="help-btn" class="icon-btn" title="Quick Tips">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"
+              height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="tips-outer" class="hidden">
+        <div class="tips-content">
+          <div class="tip-row"><span>📝</span> <strong>Edit:</strong> Click translation to modify</div>
+          <div class="tip-row"><span>✂️</span> <strong>Delete:</strong> Click word to remove</div>
+        </div>
       </div>
       <div class="search-container">
         <input type="text" id="search-input" placeholder="Search saved words...">
