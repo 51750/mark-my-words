@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Mark My Words</title>
+    <link rel="stylesheet" href="settings.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+
+  <body>
+    <header>
+      <div class="header-content">
+        <button id="back-btn" class="icon-btn" title="Back to Popup">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20"
+            height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1>Settings</h1>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>Extension Theme</h2>
+        <p class="description">Global primary color for the extension UI and default highlights.</p>
+        <div class="setting-item">
+          <label for="theme-color">Primary Color</label>
+          <div class="color-picker-wrapper">
+            <input type="color" id="theme-color" value="#6366f1">
+            <span id="theme-color-value">#6366F1</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Highlight Color Palette</h2>
+        <p class="description">Manage the list of colors available when marking words.</p>
+        <div id="palette-list" class="palette-grid">
+          <!-- Palette items will be injected here -->
+        </div>
+        <div class="add-color-container">
+          <input type="color" id="new-color-picker" value="#10b981">
+          <button id="add-color-btn" class="secondary-btn">Add Color</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="settings.js"></script>
+  </body>
+
+</html>

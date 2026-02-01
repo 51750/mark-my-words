@@ -8,6 +8,7 @@ let selectedText = '';
 let selectionRange = null;
 let pageVocabulary = [];
 let observer = null;
+let colorPalette = ['#10b981', '#f59e0b', '#ef4444'];
 
 // Initialize styles and elements
 function init() {
@@ -16,12 +17,17 @@ function init() {
 }
 
 function loadSavedWords() {
-  chrome.storage.local.get(['vocabulary', 'themeColor'], (result) => {
+  chrome.storage.local.get(['vocabulary', 'themeColor', 'colorPalette'], (result) => {
     const vocabulary = result.vocabulary || [];
     const currentUrl = window.location.href;
 
     if (result.themeColor) {
       applyColor(result.themeColor);
+      updateFabColor(result.themeColor);
+    }
+    if (result.colorPalette) {
+      colorPalette = result.colorPalette;
+      updateFabPalette();
     }
 
     // Filter words that match the current URL
@@ -150,6 +156,13 @@ function highlightSavedWords(vocabulary) {
       highlight.textContent = foundWord;
       highlight.title = 'Click to remove';
 
+      // Apply specific color if saved
+      if (savedItem && savedItem.color) {
+        highlight.style.borderBottomColor = savedItem.color;
+        highlight.style.backgroundColor = `color-mix(in srgb, ${savedItem.color}, transparent 90%)`;
+        cap.style.color = savedItem.color;
+      }
+
       // Add Edit Event to Caption
       cap.style.pointerEvents = 'auto'; // Ensure it's clickable
       cap.title = 'Click to edit';
@@ -186,25 +199,56 @@ function highlightSavedWords(vocabulary) {
   });
 }
 
+function updateFabColor(color) {
+  const mainBtn = document.getElementById('vb-fab-main');
+  if (mainBtn) {
+    mainBtn.style.backgroundColor = color;
+  }
+}
+
 function createFAB() {
   fab = document.createElement('div');
-  fab.id = 'vb-fab';
+  fab.id = 'vb-fab-container';
+  fab.style.position = 'absolute';
+  fab.style.zIndex = '2147483647';
+  fab.style.display = 'none';
+  fab.style.alignItems = 'center';
+  fab.style.gap = '6px';
+
   fab.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-    Mark it
+    <button id="vb-fab-main" title="Mark it with default color">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Mark it
+    </button>
+    <div id="vb-palette"></div>
   `;
   document.body.appendChild(fab);
 
-  fab.addEventListener('click', handleFabClick);
+  fab.querySelector('#vb-fab-main').addEventListener('click', (e) => handleFabClick(e, null));
+  updateFabPalette();
+}
+
+function updateFabPalette() {
+  const palette = fab.querySelector('#vb-palette');
+  if (!palette) return;
+  palette.innerHTML = '';
+  colorPalette.forEach(color => {
+    const dot = document.createElement('div');
+    dot.className = 'vb-palette-dot';
+    dot.style.backgroundColor = color;
+    dot.title = `Mark with ${color}`;
+    dot.addEventListener('click', (e) => handleFabClick(e, color));
+    palette.appendChild(dot);
+  });
 }
 
 function createPopup(translation) {
   // Deprecated in favor of inline translation bubble
 }
 
-async function handleFabClick(e) {
+async function handleFabClick(e, color) {
   if (!chrome.runtime?.id) {
     alert('Extension context invalidated. Please refresh the page.');
     return;
@@ -218,9 +262,7 @@ async function handleFabClick(e) {
 
   try {
     // 1. Highlight immediately with pending state
-    // We need to re-create the range if it was lost, but usually it's fine.
-    // However, clicking the FAB might have cleared selection focus, but we saved selectionRange.
-    const wrapper = highlightSelection(selectionRange, null);
+    const wrapper = highlightSelection(selectionRange, null, color);
 
     // 2. Translate
     const response = await chrome.runtime.sendMessage({
@@ -245,7 +287,7 @@ async function handleFabClick(e) {
     }
 
     // 4. Save
-    saveWord(selectedText, response.translatedText);
+    saveWord(selectedText, response.translatedText, color);
 
   } catch (err) {
     if (err.message.includes('context invalidated')) {
@@ -256,12 +298,13 @@ async function handleFabClick(e) {
   }
 }
 
-function saveWord(word, translation) {
+function saveWord(word, translation, color) {
   const newWord = {
     word: word,
     translation: translation,
     url: window.location.href, // Save the URL
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
+    color: color // Can be null (uses theme color)
   };
 
   chrome.storage.local.get(['vocabulary'], (result) => {
@@ -279,7 +322,7 @@ function saveWord(word, translation) {
   });
 }
 
-function highlightSelection(range, translation) {
+function highlightSelection(range, translation, color) {
   if (!range) return;
 
   try {
@@ -298,6 +341,12 @@ function highlightSelection(range, translation) {
     highlight.className = 'vb-highlight';
     highlight.textContent = range.toString();
     highlight.title = 'Click to remove';
+
+    if (color) {
+      highlight.style.borderBottomColor = color;
+      highlight.style.backgroundColor = `color-mix(in srgb, ${color}, transparent 90%)`;
+      cap.style.color = color;
+    }
 
     // Add Edit Event to Caption
     cap.style.pointerEvents = 'auto';
@@ -395,32 +444,27 @@ function updateHighlights(word, newTranslation) {
 function showFab(selectionRect) {
   if (!fab || !selectionRect) return;
 
-  const fabWidth = fab.offsetWidth || 110; // Approx width if not rendered yet
+  fab.style.display = 'flex';
+  const fabWidth = fab.offsetWidth || 200;
   const fabHeight = fab.offsetHeight || 30;
 
   // Calculate position: Centered above the selection
-  // selectionRect is relative to viewport, so we add window.scrollX/Y
   let left = selectionRect.left + (selectionRect.width / 2) - (fabWidth / 2);
-  let top = selectionRect.top - fabHeight - 8; // 8px spacing above text
+  let top = selectionRect.top - fabHeight - 8;
 
-  // Viewport boundary checks
-  // Prevent going off left
-  if (left < 0) left = 0;
-  // Prevent going off right
-  if (left + fabWidth > window.innerWidth) left = window.innerWidth - fabWidth;
+  if (left < 10) left = 10;
+  if (left + fabWidth > window.innerWidth - 10) left = window.innerWidth - fabWidth - 10;
 
-  // If too close to top, show below instead
   if (top < 0) {
     top = selectionRect.bottom + 8;
   }
 
   fab.style.left = `${left + window.scrollX}px`;
   fab.style.top = `${top + window.scrollY}px`;
-  fab.classList.add('visible');
 }
 
 function hideFab() {
-  if (fab) fab.classList.remove('visible');
+  if (fab) fab.style.display = 'none';
 }
 
 // Listen for messages from popup
@@ -430,6 +474,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     pageVocabulary = pageVocabulary.filter(v => v.word.toLowerCase() !== request.word.toLowerCase());
   } else if (request.action === 'updateColor') {
     applyColor(request.color);
+    updateFabColor(request.color);
+  } else if (request.action === 'updatePalette') {
+    colorPalette = request.palette;
+    updateFabPalette();
   }
 });
 

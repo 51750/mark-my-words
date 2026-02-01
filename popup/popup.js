@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const languageSelect = document.getElementById('target-language');
   const helpBtn = document.getElementById('help-btn');
   const tipsOuter = document.getElementById('tips-outer');
-  const colorPicker = document.getElementById('theme-color');
+  const settingsBtn = document.getElementById('settings-btn');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
       languageSelect.value = result.targetLanguage;
     }
     if (result.themeColor) {
-      colorPicker.value = result.themeColor;
       applyThemeToPopup(result.themeColor);
     }
   });
@@ -36,13 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({ targetLanguage: e.target.value });
   });
 
-  // Color Change Listener
-  colorPicker.addEventListener('change', (e) => {
-    const newColor = e.target.value;
-    chrome.storage.local.set({ themeColor: newColor }, () => {
-      applyThemeToPopup(newColor);
-      notifyContentScriptsOfColorChange(newColor);
-    });
+  // Settings Button Listener
+  settingsBtn.addEventListener('click', () => {
+    window.location.href = '../settings/settings.html';
   });
 
   function applyThemeToPopup(color) {
@@ -182,7 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       li.innerHTML = `
         <div class="word-content">
-          <span class="word-text">${escapeHtml(item.word)}</span>
+          <div class="word-header-row">
+            <span class="word-text">${escapeHtml(item.word)}</span>
+            ${item.color ? `<span class="color-dot" style="background-color: ${item.color}"></span>` : ''}
+          </div>
           <span class="word-translation">${escapeHtml(item.translation)}</span>
           ${showAll && item.url !== currentUrl ? `<a href="#" class="source-link" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</a>` : ''}
         </div>

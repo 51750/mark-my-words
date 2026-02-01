@@ -9,43 +9,64 @@
   --vb-font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Floating Action Button (FAB) */
-#vb-fab {
-  position: absolute;
-  z-index: 2147483647; /* Max z-index to be on top */
-  background-color: var(--vb-bg-color);
-  color: var(--vb-primary-color);
-  border: 1px solid #e5e7eb;
-  border-radius: 6px; /* Slightly tighter radius */
-  padding: 4px 8px; /* Reduced padding */
-  box-shadow: var(--vb-shadow);
-  cursor: pointer;
-  font-family: var(--vb-font-family);
-  font-size: 12px; /* Smaller font */
-  font-weight: 500;
+/* Floating Action Button (FAB) Container */
+#vb-fab-container {
   display: flex;
   align-items: center;
-  gap: 4px; /* Reduced gap */
-  gap: 4px; /* Reduced gap */
-  opacity: 0;
-  pointer-events: none;
+  gap: 8px;
+  background-color: white;
+  padding: 4px;
+  border-radius: 30px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  border: 1px solid #e5e7eb;
 }
 
-#vb-fab.visible {
-  opacity: 1;
-  pointer-events: auto;
+#vb-fab-main {
+  background-color: var(--vb-primary-color);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: var(--vb-font-family);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
 }
 
-#vb-fab:hover {
-  background-color: #f9fafb;
+#vb-fab-main:hover {
   transform: translateY(-1px);
+  filter: brightness(1.1);
 }
 
-/* Icon in FAB */
-#vb-fab svg {
-  width: 14px; /* Smaller icon */
-  height: 14px;
+#vb-fab-main svg {
+  width: 16px;
+  height: 16px;
   stroke: currentColor;
+}
+
+#vb-palette {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 4px;
+  border-left: 1px solid #f3f4f6;
+}
+
+.vb-palette-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform 0.1s;
+}
+
+.vb-palette-dot:hover {
+  transform: scale(1.2);
 }
 
 /* Translation Popup */
@@ -119,7 +140,7 @@
   left: 50% !important;
   transform: translateX(-50%) !important;
   background: none !important;
-  color: var(--vb-primary-color) !important;
+  color: var(--vb-primary-color);
   border: none !important;
   padding: 0 !important;
   font-size: 0.65em !important;
@@ -137,7 +158,7 @@
 
 .vb-def-pending {
   background: none !important;
-  color: var(--vb-primary-color) !important;
+  color: var(--vb-primary-color);
   border: none !important;
   opacity: 1 !important;
   animation: vbPulse 0.95s ease-in-out infinite !important;
@@ -150,8 +171,8 @@
 }
 
 .vb-highlight {
-  background: color-mix(in srgb, var(--vb-primary-color), transparent 90%) !important;
-  border-bottom: 2px solid var(--vb-primary-color) !important;
+  background: color-mix(in srgb, var(--vb-primary-color), transparent 90%);
+  border-bottom: 2px solid var(--vb-primary-color);
   outline: none !important;
   border-radius: 2px !important;
   padding: 0 1px !important;
