@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark My Words</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+
+  <body>
+    <header>
+      <div class="header-content">
+        <h1>Mark My Words</h1>
+        <label class="toggle-container" title="Toggle between Current Page and All Words">
+          <span class="toggle-text">All</span>
+          <input type="checkbox" id="filter-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search saved words...">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </header>
+
+    <main>
+
+
+      <ul id="word-list">
+        <!-- Words will be injected here -->
+        <div id="empty-state">
+          <p>No words saved yet.</p>
+          <p class="sub-text">Highlight text on any page to add words.</p>
+        </div>
+      </ul>
+    </main>
+
+    <footer>
+      <button id="export-btn" class="secondary-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16"
+          height="16">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Export
+      </button>
+      <button id="clear-all" class="danger-btn">Clear</button>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+
+</html>

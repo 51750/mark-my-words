@@ -1,0 +1,156 @@
+/* Variable Definitions for Premium Look */
+:root {
+  --vb-primary-color: #6366f1; /* Indigo 500 */
+  --vb-primary-hover: #4f46e5; /* Indigo 600 */
+  --vb-bg-color: #ffffff;
+  --vb-text-color: #1f2937; /* Gray 800 */
+  --vb-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --vb-border-radius: 12px;
+  --vb-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Floating Action Button (FAB) */
+#vb-fab {
+  position: absolute;
+  z-index: 2147483647; /* Max z-index to be on top */
+  background-color: var(--vb-bg-color);
+  color: var(--vb-primary-color);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* Slightly tighter radius */
+  padding: 4px 8px; /* Reduced padding */
+  box-shadow: var(--vb-shadow);
+  cursor: pointer;
+  font-family: var(--vb-font-family);
+  font-size: 12px; /* Smaller font */
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduced gap */
+  gap: 4px; /* Reduced gap */
+  opacity: 0;
+  pointer-events: none;
+}
+
+#vb-fab.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#vb-fab:hover {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+}
+
+/* Icon in FAB */
+#vb-fab svg {
+  width: 14px; /* Smaller icon */
+  height: 14px;
+  stroke: currentColor;
+}
+
+/* Translation Popup */
+#vb-popup {
+  position: absolute;
+  z-index: 2147483647;
+  background-color: var(--vb-bg-color);
+  border-radius: var(--vb-border-radius);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 300px;
+  padding: 16px;
+  font-family: var(--vb-font-family);
+  color: var(--vb-text-color);
+  border: 1px solid #e5e7eb;
+  transition: opacity 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#vb-popup h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--vb-primary-color);
+}
+
+#vb-popup .translation {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #374151; /* Gray 700 */
+}
+
+#vb-popup .actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+#vb-popup button {
+  background-color: var(--vb-primary-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+#vb-popup button:hover {
+  background-color: var(--vb-primary-hover);
+}
+
+/* --- New Highlighting Styles --- */
+
+.vb-wrap {
+  display: inline-block !important;
+  position: relative !important;
+  vertical-align: baseline !important;
+  line-height: inherit !important;
+  overflow: visible !important;
+  padding-top: 1.05em !important; /* reserve space for caption so it doesn't overlap previous line */
+}
+
+.vb-def {
+  position: absolute !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: none !important;
+  color: var(--vb-primary-color) !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 0.65em !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 2147483647 !important;
+}
+
+.vb-def-pending {
+  background: rgba(34, 197, 94, 0.92) !important;
+  color: #ffffff !important;
+  border-color: rgba(34, 197, 94, 1) !important;
+  opacity: 1 !important;
+  animation: vbPulse 0.95s ease-in-out infinite !important;
+}
+
+@keyframes vbPulse {
+  0%   { opacity: 0.35; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.35; }
+}
+
+.vb-highlight {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-bottom: 2px solid var(--vb-primary-color) !important;
+  outline: none !important;
+  border-radius: 2px !important;
+  padding: 0 1px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 0 !important;
+}
