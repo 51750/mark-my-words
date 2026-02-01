@@ -133,7 +133,7 @@ function highlightSavedWords(vocabulary) {
       wrap.className = 'vb-wrap';
 
       const cap = document.createElement('span');
-      cap.className = 'vb-def';
+      cap.className = 'vb-def unselectable';
       cap.textContent = translation;
 
       const highlight = document.createElement('span');
