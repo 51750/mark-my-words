@@ -234,6 +234,11 @@ function updateFabPalette() {
   const palette = fab.querySelector('#vb-palette');
   if (!palette) return;
   palette.innerHTML = '';
+  if (colorPalette.length === 0) {
+    palette.style.display = 'none';
+    return;
+  }
+  palette.style.display = 'flex';
   colorPalette.forEach(color => {
     const dot = document.createElement('div');
     dot.className = 'vb-palette-dot';
