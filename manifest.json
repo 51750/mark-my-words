@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Mark My Words",
+  "name": "Mark My Words - Highlighting and translating words on any page.",
   "version": "1.2.0",
-  "description": "Highlighting and translating words on any page.",
+  "description": "Select any text to translate and save it. The extension automatically highlights this word on the current page and any future pages you visit.",
   "permissions": [
     "storage",
     "activeTab",
