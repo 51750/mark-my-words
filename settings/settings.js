@@ -6,11 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const addColorBtn = document.getElementById('add-color-btn');
   const backBtn = document.getElementById('back-btn');
   const resetBtn = document.getElementById('reset-btn');
+  const autoTranslateToggle = document.getElementById('auto-translate-toggle');
 
   let currentPalette = ['#10b981', '#f59e0b', '#ef4444'];
 
   // Load saved settings
-  chrome.storage.local.get(['themeColor', 'colorPalette'], (result) => {
+  chrome.storage.local.get(['themeColor', 'colorPalette', 'autoTranslate'], (result) => {
     if (result.themeColor) {
       themeColorInput.value = result.themeColor;
       themeColorValue.textContent = result.themeColor.toUpperCase();
@@ -18,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (result.colorPalette) {
       currentPalette = result.colorPalette;
+    }
+    if (result.autoTranslate !== undefined) {
+      autoTranslateToggle.checked = result.autoTranslate;
     }
     renderPalette();
   });
@@ -46,6 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
         notifyUpdate('updatePalette', currentPalette);
       });
     }
+  });
+
+  // Auto-translate toggle
+  autoTranslateToggle.addEventListener('change', (e) => {
+    chrome.storage.local.set({ autoTranslate: e.target.checked });
   });
 
   function renderPalette() {
@@ -96,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
         themeColor: '#6366f1',
         colorPalette: ['#10b981', '#f59e0b', '#ef4444'],
         sourceLanguage: 'auto',
-        targetLanguage: 'zh-CN'
+        targetLanguage: 'zh-CN',
+        autoTranslate: true
       };
 
       chrome.storage.local.set(defaultSettings, () => {
@@ -106,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(defaultSettings.themeColor);
         currentPalette = defaultSettings.colorPalette;
         renderPalette();
+        autoTranslateToggle.checked = defaultSettings.autoTranslate;
 
         // Notify all tabs
         notifyUpdate('updateColor', defaultSettings.themeColor);

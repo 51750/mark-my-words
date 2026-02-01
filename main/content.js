@@ -261,33 +261,54 @@ async function handleFabClick(e, color) {
   if (!selectedText) return;
 
   try {
-    // 1. Highlight immediately with pending state
-    const wrapper = highlightSelection(selectionRange, null, color);
+    // Check if auto-translate is enabled
+    const settings = await chrome.storage.local.get(['autoTranslate']);
+    const autoTranslate = settings.autoTranslate !== false; // Default to true
 
-    // 2. Translate
-    const response = await chrome.runtime.sendMessage({
-      action: 'translate',
-      text: selectedText
-    });
+    let translatedText;
 
-    if (response.error) {
-      console.error('Translation error:', response.error);
-      if (wrapper) wrapper.remove(); // Undo highlight
-      alert('Translation failed: ' + response.error);
-      return;
-    }
+    if (autoTranslate) {
+      // 1. Highlight immediately with pending state
+      const wrapper = highlightSelection(selectionRange, null, color);
 
-    // 3. Update Highlight with Translation
-    if (wrapper) {
-      const cap = wrapper.querySelector('.vb-def');
-      if (cap) {
-        cap.textContent = response.translatedText;
-        cap.classList.remove('vb-def-pending');
+      // 2. Translate
+      const response = await chrome.runtime.sendMessage({
+        action: 'translate',
+        text: selectedText
+      });
+
+      if (response.error) {
+        console.error('Translation error:', response.error);
+        if (wrapper) wrapper.remove(); // Undo highlight
+        alert('Translation failed: ' + response.error);
+        return;
       }
+
+      translatedText = response.translatedText;
+
+      // 3. Update Highlight with Translation
+      if (wrapper) {
+        const cap = wrapper.querySelector('.vb-def');
+        if (cap) {
+          cap.textContent = translatedText;
+          cap.classList.remove('vb-def-pending');
+        }
+      }
+    } else {
+      // Manual translation mode - prompt user for input
+      translatedText = prompt(`Enter translation for "${selectedText}":`);
+
+      if (!translatedText) {
+        // User cancelled
+        return;
+      }
+
+      // Highlight with user-provided translation
+      highlightSelection(selectionRange, translatedText, color);
     }
 
     // 4. Save
-    saveWord(selectedText, response.translatedText, color);
+    saveWord(selectedText, translatedText, color);
 
   } catch (err) {
     if (err.message.includes('context invalidated')) {
