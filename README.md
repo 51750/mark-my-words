@@ -1,8 +1,5 @@
 # Mark My Words
-
-**Mark My Words** is a context-aware Chrome extension designed to help you build your vocabulary seamlessly while browsing the web. Unlike traditional dictionaries, it anchors your saved words to their original context, highlighting them whenever you revisit the page—or any page where they appear.
-
-![Mark My Words Demo](https://via.placeholder.com/800x400?text=Demo+Image+Placeholder)
+![Mark My Words Demo](demo.png)
 
 ## ✨ Features
 

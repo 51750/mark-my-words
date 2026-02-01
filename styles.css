@@ -132,9 +132,9 @@
 }
 
 .vb-def-pending {
-  background: rgba(34, 197, 94, 0.92) !important;
-  color: #ffffff !important;
-  border-color: rgba(34, 197, 94, 1) !important;
+  background: none !important;
+  color: var(--vb-primary-color) !important;
+  border: none !important;
   opacity: 1 !important;
   animation: vbPulse 0.95s ease-in-out infinite !important;
 }
