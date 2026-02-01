@@ -54,7 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Auto-translate toggle
   autoTranslateToggle.addEventListener('change', (e) => {
-    chrome.storage.local.set({ autoTranslate: e.target.checked });
+    chrome.storage.local.set({ autoTranslate: e.target.checked }, () => {
+      // Notify popup to update language row visibility
+      chrome.runtime.sendMessage({
+        action: 'autoTranslateChanged',
+        enabled: e.target.checked
+      }).catch(() => {
+        // Popup might not be open, that's okay
+      });
+    });
   });
 
   function renderPalette() {

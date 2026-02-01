@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('export-btn');
   const sourceLanguageSelect = document.getElementById('source-language');
   const targetLanguageSelect = document.getElementById('target-language');
+  const languageRow = document.querySelector('.language-row');
   const settingsBtn = document.getElementById('settings-btn');
 
   let fullVocabulary = []; // Store all data
@@ -15,12 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let showAll = false;
 
   // Load saved preferences
-  chrome.storage.local.get(['sourceLanguage', 'targetLanguage', 'themeColor'], (result) => {
+  chrome.storage.local.get(['sourceLanguage', 'targetLanguage', 'autoTranslate', 'themeColor'], (result) => {
     if (result.sourceLanguage) {
       sourceLanguageSelect.value = result.sourceLanguage;
     }
     if (result.targetLanguage) {
       targetLanguageSelect.value = result.targetLanguage;
+    }
+    // Show/hide language row based on autoTranslate setting
+    const autoTranslate = result.autoTranslate !== false; // Default to true
+    if (languageRow) {
+      languageRow.style.display = autoTranslate ? 'flex' : 'none';
     }
     if (result.themeColor) {
       applyThemeToPopup(result.themeColor);
@@ -39,6 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Settings Button Listener
   settingsBtn.addEventListener('click', () => {
     window.location.href = '../settings/settings.html';
+  });
+
+  // Listen for autoTranslate changes from settings page
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'autoTranslateChanged') {
+      if (languageRow) {
+        languageRow.style.display = message.enabled ? 'flex' : 'none';
+      }
+    }
   });
 
   function applyThemeToPopup(color) {
