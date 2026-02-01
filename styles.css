@@ -129,9 +129,6 @@
   pointer-events: auto !important;
   cursor: pointer !important;
   z-index: 2147483647 !important;
-}
-
-.unselectable {
   user-select: none; /* 禁止文本被选中 */
   -webkit-user-select: none; /* Chrome, Safari, Edge */
   -moz-user-select: none;    /* Firefox */

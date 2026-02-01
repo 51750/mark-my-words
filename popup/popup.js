@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="word-content">
           <span class="word-text">${escapeHtml(item.word)}</span>
           <span class="word-translation">${escapeHtml(item.translation)}</span>
-          ${showAll && item.url !== currentUrl ? `<a href="#" class="source-link" data-url="${escapeHtml(item.url)}">Different Page</a>` : ''}
+          ${showAll && item.url !== currentUrl ? `<a href="#" class="source-link" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</a>` : ''}
         </div>
         <button class="delete-btn" aria-label="Delete">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

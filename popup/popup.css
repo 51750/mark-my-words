@@ -239,6 +239,8 @@ main {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .word-text {
@@ -256,8 +258,11 @@ main {
   font-size: 10px;
   color: var(--primary);
   margin-top: 2px;
-  text-decoration: none;
-  display: inline-block;
+  text-decoration: underline;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 
