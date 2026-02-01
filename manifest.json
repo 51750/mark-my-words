@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mark My Words",
   "version": "1.0",
-  "description": "Learn English by highlighting and translating words on any page.",
+  "description": "Learn any languages by highlighting and translating words on any page.",
   "permissions": [
     "storage",
     "activeTab",
