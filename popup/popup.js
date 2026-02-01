@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const languageSelect = document.getElementById('target-language');
   const helpBtn = document.getElementById('help-btn');
   const tipsOuter = document.getElementById('tips-outer');
+  const colorPicker = document.getElementById('theme-color');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
@@ -19,10 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     tipsOuter.classList.toggle('hidden');
   });
 
-  // Load saved language preference
-  chrome.storage.local.get(['targetLanguage'], (result) => {
+  // Load saved preferences
+  chrome.storage.local.get(['targetLanguage', 'themeColor'], (result) => {
     if (result.targetLanguage) {
       languageSelect.value = result.targetLanguage;
+    }
+    if (result.themeColor) {
+      colorPicker.value = result.themeColor;
+      applyThemeToPopup(result.themeColor);
     }
   });
 
@@ -30,6 +35,34 @@ document.addEventListener('DOMContentLoaded', () => {
   languageSelect.addEventListener('change', (e) => {
     chrome.storage.local.set({ targetLanguage: e.target.value });
   });
+
+  // Color Change Listener
+  colorPicker.addEventListener('change', (e) => {
+    const newColor = e.target.value;
+    chrome.storage.local.set({ themeColor: newColor }, () => {
+      applyThemeToPopup(newColor);
+      notifyContentScriptsOfColorChange(newColor);
+    });
+  });
+
+  function applyThemeToPopup(color) {
+    document.documentElement.style.setProperty('--primary', color);
+    // Calculate a hover color (simpler way: just same or slightly different)
+    // For now, let's keep it simple.
+  }
+
+  function notifyContentScriptsOfColorChange(color) {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'updateColor',
+          color: color
+        }).catch(err => {
+          // Ignore errors for tabs where content script isn't loaded
+        });
+      });
+    });
+  }
 
   // Get current tab URL first
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

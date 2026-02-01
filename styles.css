@@ -153,7 +153,7 @@
 }
 
 .vb-highlight {
-  background: rgba(99, 102, 241, 0.1) !important;
+  background: color-mix(in srgb, var(--vb-primary-color), transparent 90%) !important;
   border-bottom: 2px solid var(--vb-primary-color) !important;
   outline: none !important;
   border-radius: 2px !important;

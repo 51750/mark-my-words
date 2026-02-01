@@ -16,9 +16,13 @@ function init() {
 }
 
 function loadSavedWords() {
-  chrome.storage.local.get(['vocabulary'], (result) => {
+  chrome.storage.local.get(['vocabulary', 'themeColor'], (result) => {
     const vocabulary = result.vocabulary || [];
     const currentUrl = window.location.href;
+
+    if (result.themeColor) {
+      applyColor(result.themeColor);
+    }
 
     // Filter words that match the current URL
     pageVocabulary = vocabulary.filter(v => v.url === currentUrl);
@@ -29,6 +33,11 @@ function loadSavedWords() {
     }
     setupObserver();
   });
+}
+
+function applyColor(color) {
+  document.documentElement.style.setProperty('--vb-primary-color', color);
+  // Optional: update hover color if needed, but the CSS uses it mostly for text/borders
 }
 
 function setupObserver() {
@@ -419,6 +428,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'deleteWord') {
     removeHighlights(request.word);
     pageVocabulary = pageVocabulary.filter(v => v.word.toLowerCase() !== request.word.toLowerCase());
+  } else if (request.action === 'updateColor') {
+    applyColor(request.color);
   }
 });
 
