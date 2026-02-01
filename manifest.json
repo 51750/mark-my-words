@@ -25,7 +25,7 @@
     }
   },
   "background": {
-    "service_worker": "scripts/background.js"
+    "service_worker": "main/background.js"
   },
   "content_scripts": [
     {
@@ -33,10 +33,10 @@
         "<all_urls>"
       ],
       "js": [
-        "scripts/content.js"
+        "main/content.js"
       ],
       "css": [
-        "styles.css"
+        "main/styles.css"
       ]
     }
   ]
