@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "description": "Highlighting and translating words on any page.",
   "scripts": {
-    "build": "mkdir -p dist && zip -r dist/mark-my-words-v$npm_package_version.zip manifest.json icons popup scripts styles.css -x \"*.DS_Store\" \"dist/*\""
+    "build": "mkdir -p dist && zip -r dist/mark-my-words-v$npm_package_version.zip manifest.json icons popup scripts main settings -x \"*.DS_Store\" \"dist/*\""
   },
   "keywords": [],
   "author": "",
