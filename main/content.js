@@ -64,9 +64,14 @@ function setupObserver() {
     // Check if mutations are relevant
     const shouldUpdate = mutations.some(mutation => {
       // Ignore if the mutation target is inside a vb-wrap or is the popup/fab
-      if (mutation.target && mutation.target.closest && (mutation.target.closest('.vb-wrap') || mutation.target.id === 'vb-fab' || mutation.target.id === 'vb-popup')) {
+      if (mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE && (mutation.target.closest('.vb-wrap') || mutation.target.id === 'vb-fab' || mutation.target.id === 'vb-popup')) {
         return false;
       }
+      // If text node, check its parent
+      if (mutation.target && mutation.target.nodeType === Node.TEXT_NODE && mutation.target.parentElement && mutation.target.parentElement.closest('.vb-wrap')) {
+        return false;
+      }
+
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
         // Check added nodes, ignore if they are our own
         for (let i = 0; i < mutation.addedNodes.length; i++) {
@@ -95,9 +100,12 @@ function setupObserver() {
 }
 
 function highlightSavedWords(vocabulary) {
+  // Filter out any empty words to prevent regex issues
+  const validWords = vocabulary.filter(v => v.word && v.word.trim().length > 0);
+  if (validWords.length === 0) return;
+
   // Create a regex from the vocabulary words
-  const words = vocabulary.map(v => v.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  if (words.length === 0) return;
+  const words = validWords.map(v => v.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
   // Match whole words only, case insensitive
   const regex = new RegExp(`\\b(${words.join('|')})\\b`, 'gi');
@@ -143,6 +151,11 @@ function highlightSavedWords(vocabulary) {
     while ((match = regex.exec(text)) !== null) {
       // Capture the word value for the closure
       const foundWord = match[0];
+
+      // Infinite loop prevention: ensure we always advance
+      if (match.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
 
       // Append text before match
       if (match.index > lastIndex) {
@@ -286,27 +299,45 @@ async function handleFabClick(e, color) {
       // 1. Highlight immediately with pending state
       const wrapper = highlightSelection(selectionRange, null, color);
 
-      // 2. Translate
-      const response = await chrome.runtime.sendMessage({
-        action: 'translate',
-        text: selectedText
-      });
+      try {
+        // 2. Translate
+        const response = await chrome.runtime.sendMessage({
+          action: 'translate',
+          text: selectedText
+        });
 
-      if (response.error) {
-        console.error('Translation error:', response.error);
-        if (wrapper) wrapper.remove(); // Undo highlight
-        alert('Translation failed: ' + response.error);
-        return;
-      }
+        if (response.error || !response.translatedText) {
+          throw new Error(response.error || 'No translation returned');
+        }
 
-      translatedText = response.translatedText;
+        translatedText = response.translatedText;
 
-      // 3. Update Highlight with Translation
-      if (wrapper) {
-        const cap = wrapper.querySelector('.vb-def');
-        if (cap) {
-          cap.textContent = translatedText;
-          cap.classList.remove('vb-def-pending');
+        // 3. Update Highlight with Translation
+        if (wrapper) {
+          const cap = wrapper.querySelector('.vb-def');
+          if (cap) {
+            cap.textContent = translatedText;
+            cap.classList.remove('vb-def-pending');
+          }
+        }
+      } catch (transErr) {
+        console.warn('Auto-translation failed, falling back to manual:', transErr);
+        // Fallback to manual prompt
+        translatedText = prompt(`Translation failed. Enter meaning for "${selectedText}":`, selectedText);
+
+        if (!translatedText) {
+          // User cancelled
+          if (wrapper) undoHighlight(wrapper);
+          return;
+        }
+
+        // Update existing wrapper
+        if (wrapper) {
+          const cap = wrapper.querySelector('.vb-def');
+          if (cap) {
+            cap.textContent = translatedText;
+            cap.classList.remove('vb-def-pending');
+          }
         }
       }
     } else {
@@ -436,15 +467,15 @@ function deleteWord(word, url) {
   });
 }
 
-function removeHighlights(word) {
-  const wrappers = document.querySelectorAll('.vb-wrap');
-  wrappers.forEach(wrap => {
-    const highlight = wrap.querySelector('.vb-highlight');
-    if (highlight && highlight.textContent.toLowerCase() === word.toLowerCase()) {
-      const text = document.createTextNode(highlight.textContent);
-      wrap.parentNode.replaceChild(text, wrap);
-    }
-  });
+function undoHighlight(wrapper) {
+  if (!wrapper || !wrapper.parentNode) return;
+  const highlight = wrapper.querySelector('.vb-highlight');
+  if (highlight) {
+    const text = document.createTextNode(highlight.textContent);
+    wrapper.parentNode.replaceChild(text, wrapper);
+  } else {
+    wrapper.remove();
+  }
 }
 
 function updateWordTranslation(word, url, newTranslation) {
