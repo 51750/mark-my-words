@@ -17,8 +17,13 @@ async function translateText(text) {
 
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       throw new Error(`Translation API error: ${response.statusText}`);
     }
@@ -32,6 +37,10 @@ async function translateText(text) {
       throw new Error('Invalid translation response format');
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Translation timed out');
+      throw new Error('Translation request timed out. Please try again or enter manually.');
+    }
     console.error('Translation failed:', error);
     throw error;
   }

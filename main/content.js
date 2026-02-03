@@ -56,39 +56,93 @@ function applyColor(color) {
   // Optional: update hover color if needed, but the CSS uses it mostly for text/borders
 }
 
+let isProcessing = false;
+let cachedRegex = null;
+let lastVocabHash = '';
+
+function getVocabHash(vocabulary) {
+  // Simple hash to detect changes in vocabulary words
+  return vocabulary.map(v => v.word).join('|');
+}
+
+function getVocabularyRegex(vocabulary) {
+  const currentHash = getVocabHash(vocabulary);
+  if (cachedRegex && currentHash === lastVocabHash) {
+    return cachedRegex;
+  }
+
+  const validWords = vocabulary.filter(v => v.word && v.word.trim().length > 0);
+  if (validWords.length === 0) {
+    cachedRegex = null;
+    lastVocabHash = currentHash;
+    return null;
+  }
+
+  // Sort longest words first to ensure greedy matching
+  const sortedWords = [...validWords].sort((a, b) => b.word.length - a.word.length);
+  const pattern = sortedWords.map(v => v.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+
+  cachedRegex = new RegExp(`\\b(${pattern})\\b`, 'gi');
+  lastVocabHash = currentHash;
+  return cachedRegex;
+}
+
 function setupObserver() {
   if (observer) observer.disconnect();
 
   let timeout = null;
+  let nodesToProcess = new Set();
+
   observer = new MutationObserver((mutations) => {
-    // Check if mutations are relevant
-    const shouldUpdate = mutations.some(mutation => {
-      // Ignore if the mutation target is inside a vb-wrap or is the popup/fab
-      if (mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE && (mutation.target.closest('.vb-wrap') || mutation.target.id === 'vb-fab' || mutation.target.id === 'vb-popup')) {
-        return false;
-      }
-      // If text node, check its parent
-      if (mutation.target && mutation.target.nodeType === Node.TEXT_NODE && mutation.target.parentElement && mutation.target.parentElement.closest('.vb-wrap')) {
-        return false;
+    if (isProcessing) return;
+
+    let needsFullScan = false;
+
+    mutations.forEach(mutation => {
+      if (needsFullScan) return;
+
+      const isOurElement = (node) =>
+        node.nodeType === Node.ELEMENT_NODE &&
+        (node.classList.contains('vb-wrap') || node.id === 'vb-fab' || node.id === 'vb-popup');
+
+      // Ignore if mutation is caused by us
+      if (isOurElement(mutation.target) || (mutation.target.closest && mutation.target.closest('.vb-wrap'))) {
+        return;
       }
 
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        // Check added nodes, ignore if they are our own
-        for (let i = 0; i < mutation.addedNodes.length; i++) {
-          const node = mutation.addedNodes[i];
-          if (node.classList && (node.classList.contains('vb-wrap') || node.id === 'vb-fab')) {
-            return false;
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(node => {
+          if (!isOurElement(node)) {
+            nodesToProcess.add(node);
           }
-        }
+        });
+      } else if (mutation.type === 'characterData') {
+        nodesToProcess.add(mutation.target.parentElement);
       }
-      return true;
     });
 
-    if (shouldUpdate) {
+    if (nodesToProcess.size > 0) {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(() => {
-        if (pageVocabulary.length > 0) highlightSavedWords(pageVocabulary);
-      }, 500); // Debounce 500ms
+        if (isProcessing || pageVocabulary.length === 0) return;
+
+        const nodes = Array.from(nodesToProcess);
+        nodesToProcess.clear();
+
+        isProcessing = true;
+        stopObserving();
+
+        try {
+          nodes.forEach(node => {
+            if (document.body.contains(node)) {
+              highlightSavedWords(pageVocabulary, node);
+            }
+          });
+        } finally {
+          isProcessing = false;
+          startObserving();
+        }
+      }, 1000); // 1s debounce for stability
     }
   });
 
@@ -99,126 +153,133 @@ function setupObserver() {
   });
 }
 
-function highlightSavedWords(vocabulary) {
-  // Filter out any empty words to prevent regex issues
-  const validWords = vocabulary.filter(v => v.word && v.word.trim().length > 0);
-  if (validWords.length === 0) return;
+function startObserving() {
+  if (observer) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+}
 
-  // Create a regex from the vocabulary words
-  const words = validWords.map(v => v.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+function stopObserving() {
+  if (observer) {
+    observer.disconnect();
+  }
+}
 
-  // Match whole words only, case insensitive
-  const regex = new RegExp(`\\b(${words.join('|')})\\b`, 'gi');
+function highlightSavedWords(vocabulary, rootNode = document.body) {
+  const regex = getVocabularyRegex(vocabulary);
+  if (!regex) return;
 
+  // Use a temporary list to avoid modifying DOM while walking
+  const textNodes = [];
   const walker = document.createTreeWalker(
-    document.body,
+    rootNode,
     NodeFilter.SHOW_TEXT,
-    null,
+    {
+      acceptNode: (node) => {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+
+        const tagName = parent.tagName;
+        if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'CODE', 'PRE', 'CANVAS', 'VIDEO'].includes(tagName)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+
+        if (parent.isContentEditable || parent.closest('.vb-wrap')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+
+        // Potential conflict avoidance (e.g. Immersive Translate)
+        if (parent.closest('.immersive-translate-target-wrapper') || parent.classList.contains('immersive-translate-state-translated')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    },
     false
   );
 
-  const nodesToReplace = [];
-
   let node;
   while (node = walker.nextNode()) {
-    // Skip if inside existing highlight or scripts/styles
-    if (node.parentElement.closest('.vb-wrap') ||
-      node.parentElement.tagName === 'SCRIPT' ||
-      node.parentElement.tagName === 'STYLE' ||
-      node.parentElement.isContentEditable) {
-      continue;
-    }
-
-    if (regex.test(node.nodeValue)) {
-      nodesToReplace.push(node);
-    }
-    // Reset regex state since we just tested
-    regex.lastIndex = 0;
+    textNodes.push(node);
   }
 
-  // Replace nodes
-  nodesToReplace.forEach(textNode => {
-    // Verify it's still in the document
+  textNodes.forEach(textNode => {
+    const text = textNode.nodeValue;
+    if (!text) return;
+
+    // Use split with capturing group for safe, non-recursive matching
+    regex.lastIndex = 0;
+    const parts = text.split(regex);
+    if (parts.length <= 1) return;
+
     if (!textNode.parentNode) return;
 
     const fragment = document.createDocumentFragment();
-    let lastIndex = 0;
-
-    regex.lastIndex = 0;
-    let match;
-    const text = textNode.nodeValue;
-
-    while ((match = regex.exec(text)) !== null) {
-      // Capture the word value for the closure
-      const foundWord = match[0];
-
-      // Infinite loop prevention: ensure we always advance
-      if (match.index === regex.lastIndex) {
-        regex.lastIndex++;
-      }
-
-      // Append text before match
-      if (match.index > lastIndex) {
-        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
-      }
-
-      // Find translation
-      const savedItem = vocabulary.find(v => v.word.toLowerCase() === foundWord.toLowerCase());
-      const translation = savedItem ? savedItem.translation : '...';
-
-      // Create the wrapper structure
-      const wrap = document.createElement('span');
-      wrap.className = 'vb-wrap';
-
-      const cap = document.createElement('span');
-      cap.className = 'vb-def';
-      cap.textContent = translation;
-
-      const highlight = document.createElement('span');
-      highlight.className = 'vb-highlight';
-      highlight.textContent = foundWord;
-      highlight.title = 'Click to remove';
-
-      // Apply specific color if saved
-      if (savedItem && savedItem.color) {
-        highlight.style.borderBottomColor = savedItem.color;
-        highlight.style.backgroundColor = `color-mix(in srgb, ${savedItem.color}, transparent 90%)`;
-        cap.style.color = savedItem.color;
-      }
-
-      // Add Edit Event to Caption
-      cap.style.pointerEvents = 'auto'; // Ensure it's clickable
-      cap.title = 'Click to edit';
-      cap.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const newTrans = prompt('Update translation:', translation);
-        if (newTrans !== null && newTrans !== translation) {
-          updateWordTranslation(foundWord, savedItem ? savedItem.url : window.location.href, newTrans);
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        // Even index: regular text
+        if (parts[i]) {
+          fragment.appendChild(document.createTextNode(parts[i]));
         }
-      });
+      } else {
+        // Odd index: matched word
+        const foundWord = parts[i];
+        const savedItem = vocabulary.find(v => v.word.toLowerCase() === foundWord.toLowerCase());
 
-      // Add Delete Event to Highlight
-      highlight.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (confirm(`Remove "${foundWord}" from vocabulary?`)) {
-          deleteWord(foundWord, savedItem ? savedItem.url : window.location.href);
+        const wrap = document.createElement('span');
+        wrap.className = 'vb-wrap';
+
+        const cap = document.createElement('span');
+        cap.className = 'vb-def';
+        cap.textContent = savedItem ? savedItem.translation : '...';
+
+        const highlight = document.createElement('span');
+        highlight.className = 'vb-highlight';
+        highlight.textContent = foundWord;
+        highlight.title = 'Click to remove';
+
+        if (savedItem && savedItem.color) {
+          highlight.style.borderBottomColor = savedItem.color;
+          highlight.style.backgroundColor = `color-mix(in srgb, ${savedItem.color}, transparent 90%)`;
+          cap.style.color = savedItem.color;
         }
-      });
 
-      wrap.appendChild(cap);
-      wrap.appendChild(highlight);
-      fragment.appendChild(wrap);
+        cap.style.pointerEvents = 'auto';
+        cap.title = 'Click to edit';
+        cap.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const currentTrans = cap.textContent;
+          const newTrans = prompt('Update translation:', currentTrans);
+          if (newTrans !== null && newTrans !== currentTrans) {
+            updateWordTranslation(foundWord, savedItem ? savedItem.url : window.location.href, newTrans);
+          }
+        });
 
-      // Note: regex.lastIndex behaves weirdly with global flag in loop sometimes, but here we manually manage
-      lastIndex = match.index + foundWord.length;
+        highlight.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Remove "${foundWord}" from vocabulary?`)) {
+            deleteWord(foundWord, savedItem ? savedItem.url : window.location.href);
+          }
+        });
+
+        wrap.appendChild(cap);
+        wrap.appendChild(highlight);
+        fragment.appendChild(wrap);
+      }
     }
 
-    // Append remaining text
-    if (lastIndex < text.length) {
-      fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    try {
+      if (textNode.parentNode) {
+        textNode.parentNode.replaceChild(fragment, textNode);
+      }
+    } catch (e) {
+      console.warn('Failed to replace text node:', e);
     }
-
-    textNode.parentNode.replaceChild(fragment, textNode);
   });
 }
 
@@ -321,22 +382,15 @@ async function handleFabClick(e, color) {
           }
         }
       } catch (transErr) {
-        console.warn('Auto-translation failed, falling back to manual:', transErr);
-        // Fallback to manual prompt
-        translatedText = prompt(`Translation failed. Enter meaning for "${selectedText}":`, selectedText);
+        console.warn('Auto-translation failed:', transErr);
 
-        if (!translatedText) {
-          // User cancelled
-          if (wrapper) undoHighlight(wrapper);
-          return;
-        }
-
-        // Update existing wrapper
+        // Update existing wrapper with failure state instead of thread-blocking prompt
         if (wrapper) {
           const cap = wrapper.querySelector('.vb-def');
           if (cap) {
-            cap.textContent = translatedText;
+            cap.textContent = 'Translation failed (click to edit)';
             cap.classList.remove('vb-def-pending');
+            cap.style.color = '#ef4444'; // Red for error
           }
         }
       }
@@ -441,9 +495,14 @@ function highlightSelection(range, translation, color) {
     wrap.appendChild(cap);
     wrap.appendChild(highlight);
 
-    // Insert
-    range.deleteContents();
-    range.insertNode(wrap);
+    // Insert (Temporarily disable observer to avoid infinite loops)
+    stopObserving();
+    try {
+      range.deleteContents();
+      range.insertNode(wrap);
+    } finally {
+      startObserving();
+    }
 
     // Restore selection or clear it
     window.getSelection().removeAllRanges();
@@ -563,6 +622,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }
 });
+
+function removeHighlights(word) {
+  const wrappers = document.querySelectorAll('.vb-wrap');
+  wrappers.forEach(wrap => {
+    const highlight = wrap.querySelector('.vb-highlight');
+    if (highlight && highlight.textContent.toLowerCase() === word.toLowerCase()) {
+      const text = document.createTextNode(highlight.textContent);
+      wrap.parentNode.replaceChild(text, wrap);
+    }
+  });
+}
 
 function removeHighlightsFromPage() {
   const wrappers = document.querySelectorAll('.vb-wrap');
