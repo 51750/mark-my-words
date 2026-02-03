@@ -105,10 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateDisableBtnUI(isDisabled) {
     if (!disableSiteBtn) return;
     if (isDisabled) {
-      disableSiteBtn.textContent = 'Enable';
+      disableSiteBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        Enable
+      `;
       disableSiteBtn.classList.add('active');
     } else {
-      disableSiteBtn.textContent = 'Disable';
+      disableSiteBtn.innerHTML = `
+        <span class="status-dot"></span>
+        Disable
+      `;
       disableSiteBtn.classList.remove('active');
     }
   }
