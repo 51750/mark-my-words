@@ -5,8 +5,7 @@
   "description": "Select any text to translate and save it.",
   "permissions": [
     "storage",
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
     "https://translate.googleapis.com/*"
