@@ -407,8 +407,10 @@ async function handleFabClick(e, color) {
       highlightSelection(selectionRange, translatedText, color);
     }
 
-    // 4. Save
-    saveWord(selectedText, translatedText, color);
+    // 4. Save only when we have a translation
+    if (translatedText) {
+      saveWord(selectedText, translatedText, color);
+    }
 
   } catch (err) {
     if (err.message.includes('context invalidated')) {
@@ -683,4 +685,3 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
-

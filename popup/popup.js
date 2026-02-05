@@ -229,8 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const query = searchInput.value.toLowerCase();
     if (query) {
       vocab = vocab.filter(item =>
-        item.word.toLowerCase().includes(query) ||
-        item.translation.includes(query)
+        (item.word || '').toLowerCase().includes(query) ||
+        (item.translation || '').toLowerCase().includes(query)
       );
     }
     return vocab;
