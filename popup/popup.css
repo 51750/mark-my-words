@@ -382,35 +382,10 @@ main {
   flex-wrap: wrap;
 }
 
-.edit-color {
-  width: 34px;
-  height: 28px;
-  padding: 0;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background-color: #fff;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.edit-color:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.edit-default-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-sub);
-}
-
 .edit-palette {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
 }
 
 .palette-swatch {
@@ -421,17 +396,54 @@ main {
   cursor: pointer;
   padding: 0;
   outline: none;
+  position: relative;
 }
 
 .palette-swatch.is-selected {
-  box-shadow: 0 0 0 2px var(--primary);
+  border-color: var(--primary);
 }
+
+.palette-default {
+  position: relative;
+}
+
+.palette-default::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.palette-swatch.is-selected::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background-color: rgba(255,255,255,0.95);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
 
 .edit-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
+}
+
+.edit-actions button {
+  font-size: 12px;
+  padding: 6px 12px;
 }
 
 .primary-btn {

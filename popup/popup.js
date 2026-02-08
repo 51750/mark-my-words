@@ -326,17 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="edit-row">
             <label>Color</label>
             <div class="edit-color-row">
-              <input type="color" class="edit-color" />
-              <label class="edit-default-toggle">
-                <input type="checkbox" class="edit-use-default" />
-                Default
-              </label>
+              <div class="edit-palette"></div>
             </div>
-            <div class="edit-palette"></div>
-          </div>
-          <div class="edit-row">
-            <label>URL</label>
-            <input type="text" class="edit-url" />
           </div>
           <div class="edit-actions">
             <button class="secondary-btn edit-cancel" type="button">Cancel</button>
@@ -356,12 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const editBtn = li.querySelector('.edit-btn');
       const translationInput = li.querySelector('.edit-translation');
-      const urlInput = li.querySelector('.edit-url');
-      const colorInput = li.querySelector('.edit-color');
-      const useDefaultInput = li.querySelector('.edit-use-default');
       const paletteContainer = li.querySelector('.edit-palette');
       const cancelBtn = li.querySelector('.edit-cancel');
       const saveBtn = li.querySelector('.edit-save');
+      let isDefaultSelected = false;
+      let selectedColor = themeColor;
 
       function setPaletteSelection(selectedColor) {
         if (!paletteContainer) return;
@@ -373,12 +363,24 @@ document.addEventListener('DOMContentLoaded', () => {
       function renderPalette(selectedColor) {
         if (!paletteContainer) return;
         paletteContainer.innerHTML = '';
-        if (!Array.isArray(colorPalette) || colorPalette.length === 0) {
-          paletteContainer.style.display = 'none';
-          return;
-        }
         paletteContainer.style.display = 'flex';
-        colorPalette.forEach(color => {
+        const paletteColors = Array.isArray(colorPalette) ? colorPalette : [];
+        const colors = paletteColors.filter(c => c !== themeColor);
+
+        const defaultSwatch = document.createElement('button');
+        defaultSwatch.type = 'button';
+        defaultSwatch.className = 'palette-swatch palette-default';
+        defaultSwatch.dataset.color = themeColor;
+        defaultSwatch.style.backgroundColor = themeColor;
+        defaultSwatch.title = `Default (${themeColor})`;
+        defaultSwatch.addEventListener('click', () => {
+          isDefaultSelected = true;
+          selectedColor = themeColor;
+          setPaletteSelection(themeColor);
+        });
+        paletteContainer.appendChild(defaultSwatch);
+
+        colors.forEach(color => {
           const swatch = document.createElement('button');
           swatch.type = 'button';
           swatch.className = 'palette-swatch';
@@ -386,9 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
           swatch.style.backgroundColor = color;
           swatch.title = color;
           swatch.addEventListener('click', () => {
-            useDefaultInput.checked = false;
-            colorInput.disabled = false;
-            colorInput.value = color;
+            isDefaultSelected = false;
+            selectedColor = color;
             setPaletteSelection(color);
           });
           paletteContainer.appendChild(swatch);
@@ -398,12 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       function syncEditValues() {
         translationInput.value = item.translation || '';
-        urlInput.value = item.url || '';
-        const useDefault = !item.color;
-        useDefaultInput.checked = useDefault;
-        colorInput.value = item.color || themeColor;
-        colorInput.disabled = useDefault;
-        renderPalette(useDefault ? null : (item.color || themeColor));
+        isDefaultSelected = !item.color;
+        selectedColor = item.color || themeColor;
+        renderPalette(selectedColor);
       }
 
       function enterEditMode() {
@@ -422,25 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      if (useDefaultInput) {
-        useDefaultInput.addEventListener('change', () => {
-          colorInput.disabled = useDefaultInput.checked;
-          if (useDefaultInput.checked) {
-            setPaletteSelection(null);
-          } else {
-            setPaletteSelection(colorInput.value);
-          }
-        });
-      }
-
-      if (colorInput) {
-        colorInput.addEventListener('input', () => {
-          useDefaultInput.checked = false;
-          colorInput.disabled = false;
-          setPaletteSelection(colorInput.value);
-        });
-      }
-
       if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
           exitEditMode();
@@ -450,18 +429,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (saveBtn) {
         saveBtn.addEventListener('click', () => {
           const newTranslation = translationInput.value.trim();
-          const newUrl = urlInput.value.trim();
-          const newColor = useDefaultInput.checked ? null : colorInput.value;
-
-          if (!newUrl) {
-            alert('URL is required.');
-            return;
-          }
+          const newColor = isDefaultSelected ? null : selectedColor;
 
           updateWordEntry(item, {
             translation: newTranslation,
-            color: newColor,
-            url: newUrl
+            color: newColor
           });
         });
       }
@@ -477,21 +449,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateWordEntry(item, updates) {
-    const originalUrl = item.url;
     const wordLower = (item.word || '').toLowerCase();
     const index = fullVocabulary.findIndex(v => (v.word || '').toLowerCase() === wordLower && v.url === item.url);
     if (index === -1) return;
 
     fullVocabulary[index].translation = updates.translation;
     fullVocabulary[index].color = updates.color;
-    fullVocabulary[index].url = updates.url;
 
     chrome.storage.local.set({ vocabulary: fullVocabulary }, () => {
       loadWords();
-      const shouldRefresh = originalUrl === currentUrl || updates.url === currentUrl;
-      if (shouldRefresh) {
-        refreshCurrentTabVocabulary();
-      }
+      refreshCurrentTabVocabulary();
     });
   }
 
