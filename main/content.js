@@ -260,6 +260,7 @@ function highlightSavedWords(vocabulary, rootNode = document.body) {
         highlight.dataset.vbTranslation = savedItem ? savedItem.translation : '...';
 
         if (savedItem && savedItem.color) {
+          highlight.style.setProperty('--vb-word-color', savedItem.color);
           highlight.style.borderBottomColor = savedItem.color;
           highlight.style.backgroundColor = `color-mix(in srgb, ${savedItem.color}, transparent 90%)`;
           cap.style.color = savedItem.color;
@@ -490,6 +491,7 @@ function highlightSelection(range, translation, color) {
     highlight.dataset.vbTranslation = translation || '...';
 
     if (color) {
+      highlight.style.setProperty('--vb-word-color', color);
       highlight.style.borderBottomColor = color;
       highlight.style.backgroundColor = `color-mix(in srgb, ${color}, transparent 90%)`;
       cap.style.color = color;
@@ -650,6 +652,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'toggleDefinitions') {
     hideDefinitions = request.hidden === true;
     applyDefinitionsVisibility(hideDefinitions);
+  } else if (request.action === 'refreshVocabulary') {
+    refreshVocabularyFromStorage();
   }
 });
 
@@ -673,6 +677,14 @@ function removeHighlightsFromPage() {
       wrap.parentNode.replaceChild(text, wrap);
     }
   });
+}
+
+function refreshVocabularyFromStorage() {
+  removeHighlightsFromPage();
+  pageVocabulary = [];
+  cachedRegex = null;
+  lastVocabHash = '';
+  loadSavedWords();
 }
 
 // Event Listeners for Selection
