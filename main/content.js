@@ -9,6 +9,7 @@ let selectionRange = null;
 let pageVocabulary = [];
 let observer = null;
 let colorPalette = ['#10b981', '#f59e0b', '#ef4444'];
+let hideDefinitions = false;
 
 // Initialize styles and elements
 function init() {
@@ -20,6 +21,11 @@ function init() {
       console.log('Mark My Words is disabled on this site.');
       return;
     }
+
+    chrome.storage.local.get(['hideDefinitions'], (settings) => {
+      hideDefinitions = settings.hideDefinitions === true;
+      applyDefinitionsVisibility(hideDefinitions);
+    });
 
     createFAB();
     loadSavedWords();
@@ -54,6 +60,16 @@ function loadSavedWords() {
 function applyColor(color) {
   document.documentElement.style.setProperty('--vb-primary-color', color);
   // Optional: update hover color if needed, but the CSS uses it mostly for text/borders
+}
+
+function applyDefinitionsVisibility(shouldHide) {
+  const root = document.documentElement;
+  if (!root) return;
+  if (shouldHide) {
+    root.classList.add('vb-hide-definitions');
+  } else {
+    root.classList.remove('vb-hide-definitions');
+  }
 }
 
 let isProcessing = false;
@@ -241,7 +257,7 @@ function highlightSavedWords(vocabulary, rootNode = document.body) {
         const highlight = document.createElement('span');
         highlight.className = 'vb-highlight';
         highlight.textContent = foundWord;
-        highlight.title = 'Click to remove';
+        highlight.dataset.vbTranslation = savedItem ? savedItem.translation : '...';
 
         if (savedItem && savedItem.color) {
           highlight.style.borderBottomColor = savedItem.color;
@@ -379,6 +395,10 @@ async function handleFabClick(e, color) {
           if (cap) {
             cap.textContent = translatedText;
             cap.classList.remove('vb-def-pending');
+            const highlight = wrapper.querySelector('.vb-highlight');
+            if (highlight) {
+              highlight.dataset.vbTranslation = translatedText;
+            }
           }
         }
       } catch (transErr) {
@@ -391,6 +411,10 @@ async function handleFabClick(e, color) {
             cap.textContent = 'Translation failed (click to edit)';
             cap.classList.remove('vb-def-pending');
             cap.style.color = '#ef4444'; // Red for error
+            const highlight = wrapper.querySelector('.vb-highlight');
+            if (highlight) {
+              highlight.dataset.vbTranslation = 'Translation failed';
+            }
           }
         }
       }
@@ -463,7 +487,7 @@ function highlightSelection(range, translation, color) {
     const highlight = document.createElement('span');
     highlight.className = 'vb-highlight';
     highlight.textContent = range.toString();
-    highlight.title = 'Click to remove';
+    highlight.dataset.vbTranslation = translation || '...';
 
     if (color) {
       highlight.style.borderBottomColor = color;
@@ -565,6 +589,7 @@ function updateHighlights(word, newTranslation) {
     if (highlight && highlight.textContent.toLowerCase() === word.toLowerCase()) {
       const cap = wrap.querySelector('.vb-def');
       if (cap) cap.textContent = newTranslation;
+      highlight.dataset.vbTranslation = newTranslation;
     }
   });
 }
@@ -622,6 +647,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         loadSavedWords();
       }
     }
+  } else if (request.action === 'toggleDefinitions') {
+    hideDefinitions = request.hidden === true;
+    applyDefinitionsVisibility(hideDefinitions);
   }
 });
 

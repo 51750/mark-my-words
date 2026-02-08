@@ -155,6 +155,15 @@
   -ms-user-select: none;     /* IE/Edge 早期版本 */
 }
 
+.vb-hide-definitions .vb-def {
+  display: none !important;
+}
+
+.vb-hide-definitions .vb-wrap {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
 .vb-def-pending {
   background: none !important;
   color: var(--vb-primary-color);
@@ -178,4 +187,29 @@
   cursor: pointer !important;
   position: relative !important;
   z-index: 0 !important;
+}
+
+.vb-hide-definitions .vb-highlight[data-vb-translation]::after {
+  content: attr(data-vb-translation);
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, -6px);
+  background: var(--vb-primary-color);
+  color: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.2);
+  z-index: 2147483647;
+}
+
+.vb-hide-definitions .vb-highlight[data-vb-translation]:hover::after {
+  opacity: 1;
+  transform: translate(-50%, -8px);
 }

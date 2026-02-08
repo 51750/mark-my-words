@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const languageRow = document.querySelector('.language-row');
   const settingsBtn = document.getElementById('settings-btn');
   const disableSiteBtn = document.getElementById('disable-site-btn');
+  const toggleDefinitionsBtn = document.getElementById('toggle-definitions-btn');
 
   let fullVocabulary = []; // Store all data
   let currentUrl = '';
@@ -17,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let showAll = false;
 
   // Load saved preferences
-  chrome.storage.local.get(['sourceLanguage', 'targetLanguage', 'autoTranslate', 'themeColor'], (result) => {
+  chrome.storage.local.get(['sourceLanguage', 'targetLanguage', 'autoTranslate', 'themeColor', 'hideDefinitions'], (result) => {
     if (result.sourceLanguage) {
       sourceLanguageSelect.value = result.sourceLanguage;
     }
@@ -31,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (result.themeColor) {
       applyThemeToPopup(result.themeColor);
+    }
+    if (toggleDefinitionsBtn) {
+      const hidden = result.hideDefinitions === true;
+      updateDefinitionsBtnUI(hidden);
     }
   });
 
@@ -56,6 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  function updateDefinitionsBtnUI(hidden) {
+    if (!toggleDefinitionsBtn) return;
+    toggleDefinitionsBtn.textContent = hidden ? 'Show Definitions' : 'Hide Definitions';
+    toggleDefinitionsBtn.classList.toggle('active', hidden);
+  }
 
   function applyThemeToPopup(color) {
     document.documentElement.style.setProperty('--primary', color);
@@ -101,6 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
       loadWords();
     }
   });
+
+  if (toggleDefinitionsBtn) {
+    toggleDefinitionsBtn.addEventListener('click', () => {
+      chrome.storage.local.get(['hideDefinitions'], (result) => {
+        const nextHidden = !(result.hideDefinitions === true);
+        chrome.storage.local.set({ hideDefinitions: nextHidden }, () => {
+          updateDefinitionsBtnUI(nextHidden);
+          chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+              chrome.tabs.sendMessage(tab.id, {
+                action: 'toggleDefinitions',
+                hidden: nextHidden
+              }).catch(() => {
+                // Ignore tabs without content script
+              });
+            });
+          });
+        });
+      });
+    });
+  }
 
   function updateDisableBtnUI(isDisabled) {
     if (!disableSiteBtn) return;
