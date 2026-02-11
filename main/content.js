@@ -362,6 +362,11 @@ function createWordActionBubble() {
         <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 6a9 9 0 010 12" />
       </svg>
     </button>
+    <button class="vb-word-action-btn icon" data-action="edit" title="Edit translation" aria-label="Edit translation">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 18l-4 1 1-4 9.732-9.732a2.5 2.5 0 113.536 3.536L9 18z" />
+      </svg>
+    </button>
     <button class="vb-word-action-btn icon danger" data-action="delete" title="Delete word" aria-label="Delete word">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.75 11.25A2 2 0 0116.25 20H7.75a2 2 0 01-1.99-1.75L5 7" />
@@ -403,6 +408,13 @@ function createWordActionBubble() {
       const action = actionBtn.dataset.action;
       if (action === 'delete') {
         deleteWord(activeWordAction.word, activeWordAction.url);
+        hideWordActionBubble();
+      } else if (action === 'edit') {
+        const currentTranslation = activeWordAction.translation || '';
+        const newTranslation = prompt('Update translation:', currentTranslation);
+        if (newTranslation !== null && newTranslation !== currentTranslation) {
+          updateWordTranslation(activeWordAction.word, activeWordAction.url, newTranslation);
+        }
         hideWordActionBubble();
       } else if (action === 'speak') {
         speakWord(activeWordAction.word);
@@ -724,11 +736,15 @@ function updateHighlightColor(word, newColor) {
 function showWordActionBubble(word, url, anchorEl) {
   if (!wordActionBubble || !anchorEl) return;
   hideFab();
-  activeWordAction = { word, url };
 
   const currentItem = pageVocabulary.find(
     (item) => item.word.toLowerCase() === word.toLowerCase() && item.url === url
   );
+  activeWordAction = {
+    word,
+    url,
+    translation: currentItem ? (currentItem.translation || '') : ''
+  };
   setWordActionSelectedColor(currentItem ? currentItem.color : null);
 
   const rect = anchorEl.getBoundingClientRect();
