@@ -12,7 +12,7 @@
 -   **Site-Specific Disabling**: Easily disable the extension on specific websites directly from the popup. Great for avoiding interference on sensitive or complex sites.
 -   **Smart Management**:
     -   **Edit**: Click the translation label to modify it instantly.
-    -   **Delete**: Click the highlighted word to remove it. Changes sync immediately across the page.
+    -   **Word Action Bubble**: Click a highlighted word to open a floating action bubble for delete, recolor, and pronunciation.
 
 ### Translation Options
 -   **Auto-Translate Mode**: Automatically translate selected words using Google Translate API (default).
@@ -79,7 +79,10 @@
 ### On-Page Interactions
 
 -   **Edit Translation**: Click any translation bubble to modify the text.
--   **Remove Word**: Click the highlighted word itself to delete it from your vocabulary.
+-   **Word Actions**: Click a highlighted word to open a bubble menu.
+-   **Delete Word**: Use the delete button in the bubble menu to remove it from your vocabulary.
+-   **Change Color**: Use color dots in the bubble menu to update the word's highlight color (including default color).
+-   **Pronunciation**: Use the speaker button in the bubble menu to pronounce the word.
 -   **Hover to View**: Hover over any highlighted word to see its translation.
 
 ## 🛠 Local Development

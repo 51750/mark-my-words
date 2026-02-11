@@ -9,8 +9,8 @@
   --vb-font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Floating Action Button (FAB) Container */
-#vb-fab-container {
+/* Floating Bubble Container (shared by FAB and word menu) */
+.vb-bubble-container {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -19,6 +19,10 @@
   border-radius: 30px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
   border: 1px solid #e5e7eb;
+}
+
+#vb-word-menu {
+  padding: 4px 8px 4px 4px;
 }
 
 #vb-fab-main {
@@ -55,10 +59,18 @@
   padding: 0 8px 0 0;
 }
 
+.vb-word-color-palette {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 0 2px;
+}
+
 .vb-palette-dot {
   width: 18px;
   height: 18px;
   border-radius: 50%;
+  position: relative;
   cursor: pointer;
   border: 1px solid rgba(0,0,0,0.05);
   transition: transform 0.1s;
@@ -66,6 +78,63 @@
 
 .vb-palette-dot:hover {
   transform: scale(1.2);
+}
+
+.vb-palette-dot.is-active {
+  box-shadow: none;
+}
+
+.vb-palette-dot.is-active::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.vb-word-action-btn {
+  border: none;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-family: var(--vb-font-family);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vb-word-action-btn:hover {
+  background: #e5e7eb;
+}
+
+.vb-word-action-btn.icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vb-word-action-btn.icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.vb-word-action-btn.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.vb-word-action-btn.danger:hover {
+  background: #fecaca;
 }
 
 /* Translation Popup */

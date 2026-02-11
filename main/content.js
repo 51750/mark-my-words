@@ -4,12 +4,15 @@
 
 let fab = null;
 let popup = null;
+let wordActionBubble = null;
 let selectedText = '';
 let selectionRange = null;
 let pageVocabulary = [];
 let observer = null;
 let colorPalette = ['#10b981', '#f59e0b', '#ef4444'];
 let hideDefinitions = false;
+let activeWordAction = null;
+let wordActionListenersAttached = false;
 
 // Initialize styles and elements
 function init() {
@@ -28,6 +31,7 @@ function init() {
     });
 
     createFAB();
+    createWordActionBubble();
     loadSavedWords();
   });
 }
@@ -119,7 +123,12 @@ function setupObserver() {
 
       const isOurElement = (node) =>
         node.nodeType === Node.ELEMENT_NODE &&
-        (node.classList.contains('vb-wrap') || node.id === 'vb-fab' || node.id === 'vb-popup');
+        (
+          node.classList.contains('vb-wrap') ||
+          node.id === 'vb-fab-container' ||
+          node.id === 'vb-word-menu' ||
+          node.id === 'vb-popup'
+        );
 
       // Ignore if mutation is caused by us
       if (isOurElement(mutation.target) || (mutation.target.closest && mutation.target.closest('.vb-wrap'))) {
@@ -279,9 +288,11 @@ function highlightSavedWords(vocabulary, rootNode = document.body) {
 
         highlight.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (confirm(`Remove "${foundWord}" from vocabulary?`)) {
-            deleteWord(foundWord, savedItem ? savedItem.url : window.location.href);
-          }
+          showWordActionBubble(
+            foundWord,
+            savedItem ? savedItem.url : window.location.href,
+            highlight
+          );
         });
 
         wrap.appendChild(cap);
@@ -310,6 +321,7 @@ function updateFabColor(color) {
 function createFAB() {
   fab = document.createElement('div');
   fab.id = 'vb-fab-container';
+  fab.className = 'vb-bubble-container';
   fab.style.position = 'absolute';
   fab.style.zIndex = '2147483647';
   fab.style.display = 'none';
@@ -331,6 +343,104 @@ function createFAB() {
   updateFabPalette();
 }
 
+function createWordActionBubble() {
+  wordActionBubble = document.createElement('div');
+  wordActionBubble.id = 'vb-word-menu';
+  wordActionBubble.className = 'vb-bubble-container';
+  wordActionBubble.style.position = 'absolute';
+  wordActionBubble.style.zIndex = '2147483647';
+  wordActionBubble.style.display = 'none';
+  wordActionBubble.style.alignItems = 'center';
+  wordActionBubble.style.gap = '6px';
+
+  wordActionBubble.innerHTML = `
+    <div class="vb-word-color-palette"></div>
+    <button class="vb-word-action-btn icon" data-action="speak" title="Pronounce" aria-label="Pronounce">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.5 8.5a5 5 0 010 7" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 6a9 9 0 010 12" />
+      </svg>
+    </button>
+    <button class="vb-word-action-btn icon danger" data-action="delete" title="Delete word" aria-label="Delete word">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.75 11.25A2 2 0 0116.25 20H7.75a2 2 0 01-1.99-1.75L5 7" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v5M14 11v5M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" />
+      </svg>
+    </button>
+  `;
+  document.body.appendChild(wordActionBubble);
+
+  const colorPaletteEl = wordActionBubble.querySelector('.vb-word-color-palette');
+  const renderMenuColors = () => {
+    colorPaletteEl.innerHTML = '';
+
+    const defaultDot = document.createElement('div');
+    defaultDot.className = 'vb-palette-dot vb-default-color-dot';
+    defaultDot.style.backgroundColor = 'var(--vb-primary-color)';
+    defaultDot.title = 'Use default color';
+    defaultDot.dataset.color = '';
+    colorPaletteEl.appendChild(defaultDot);
+
+    colorPalette.forEach(color => {
+      const dot = document.createElement('div');
+      dot.className = 'vb-palette-dot';
+      dot.style.backgroundColor = color;
+      dot.title = `Set color ${color}`;
+      dot.dataset.color = color;
+      colorPaletteEl.appendChild(dot);
+    });
+  };
+
+  renderMenuColors();
+
+  wordActionBubble.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!activeWordAction) return;
+
+    const actionBtn = e.target.closest('.vb-word-action-btn');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      if (action === 'delete') {
+        deleteWord(activeWordAction.word, activeWordAction.url);
+        hideWordActionBubble();
+      } else if (action === 'speak') {
+        speakWord(activeWordAction.word);
+      }
+      return;
+    }
+
+    const colorDot = e.target.closest('.vb-palette-dot');
+    if (colorDot) {
+      const color = colorDot.dataset.color || null;
+      updateWordColor(activeWordAction.word, activeWordAction.url, color);
+      hideWordActionBubble();
+    }
+  });
+
+  if (!wordActionListenersAttached) {
+    document.addEventListener('click', (e) => {
+      if (!wordActionBubble || wordActionBubble.style.display === 'none') return;
+      if (!wordActionBubble.contains(e.target)) {
+        hideWordActionBubble();
+      }
+    });
+
+    window.addEventListener('scroll', hideWordActionBubble, true);
+    window.addEventListener('resize', hideWordActionBubble);
+    wordActionListenersAttached = true;
+  }
+}
+
+function setWordActionSelectedColor(color) {
+  if (!wordActionBubble) return;
+  const selected = color || '';
+  const dots = wordActionBubble.querySelectorAll('.vb-word-color-palette .vb-palette-dot');
+  dots.forEach((dot) => {
+    dot.classList.toggle('is-active', dot.dataset.color === selected);
+  });
+}
+
 function updateFabPalette() {
   const palette = fab.querySelector('#vb-palette');
   if (!palette) return;
@@ -348,6 +458,27 @@ function updateFabPalette() {
     dot.addEventListener('click', (e) => handleFabClick(e, color));
     palette.appendChild(dot);
   });
+
+  const wordPalette = wordActionBubble ? wordActionBubble.querySelector('.vb-word-color-palette') : null;
+  if (wordPalette) {
+    wordPalette.innerHTML = '';
+
+    const defaultDot = document.createElement('div');
+    defaultDot.className = 'vb-palette-dot vb-default-color-dot';
+    defaultDot.style.backgroundColor = 'var(--vb-primary-color)';
+    defaultDot.title = 'Use default color';
+    defaultDot.dataset.color = '';
+    wordPalette.appendChild(defaultDot);
+
+    colorPalette.forEach(color => {
+      const dot = document.createElement('div');
+      dot.className = 'vb-palette-dot';
+      dot.style.backgroundColor = color;
+      dot.title = `Set color ${color}`;
+      dot.dataset.color = color;
+      wordPalette.appendChild(dot);
+    });
+  }
 }
 
 function createPopup(translation) {
@@ -514,9 +645,7 @@ function highlightSelection(range, translation, color) {
     highlight.addEventListener('click', (e) => {
       e.stopPropagation();
       const word = highlight.textContent;
-      if (confirm(`Remove "${word}" from vocabulary?`)) {
-        deleteWord(word, window.location.href);
-      }
+      showWordActionBubble(word, window.location.href, highlight);
     });
 
     // Assemble
@@ -551,6 +680,91 @@ function deleteWord(word, url) {
       pageVocabulary = pageVocabulary.filter(v => v.word.toLowerCase() !== word.toLowerCase());
       removeHighlights(word);
     });
+  });
+}
+
+function updateWordColor(word, url, newColor) {
+  chrome.storage.local.get(['vocabulary'], (result) => {
+    const vocabulary = result.vocabulary || [];
+    const index = vocabulary.findIndex(v => v.word.toLowerCase() === word.toLowerCase() && v.url === url);
+    if (index === -1) return;
+
+    vocabulary[index].color = newColor;
+    chrome.storage.local.set({ vocabulary }, () => {
+      const localIndex = pageVocabulary.findIndex(v => v.word.toLowerCase() === word.toLowerCase() && v.url === url);
+      if (localIndex !== -1) {
+        pageVocabulary[localIndex].color = newColor;
+      }
+      updateHighlightColor(word, newColor);
+    });
+  });
+}
+
+function updateHighlightColor(word, newColor) {
+  const wrappers = document.querySelectorAll('.vb-wrap');
+  wrappers.forEach(wrap => {
+    const highlight = wrap.querySelector('.vb-highlight');
+    if (!highlight || highlight.textContent.toLowerCase() !== word.toLowerCase()) return;
+
+    const cap = wrap.querySelector('.vb-def');
+    if (newColor) {
+      highlight.style.setProperty('--vb-word-color', newColor);
+      highlight.style.borderBottomColor = newColor;
+      highlight.style.backgroundColor = `color-mix(in srgb, ${newColor}, transparent 90%)`;
+      if (cap) cap.style.color = newColor;
+    } else {
+      highlight.style.removeProperty('--vb-word-color');
+      highlight.style.removeProperty('border-bottom-color');
+      highlight.style.removeProperty('background-color');
+      if (cap) cap.style.removeProperty('color');
+    }
+  });
+}
+
+function showWordActionBubble(word, url, anchorEl) {
+  if (!wordActionBubble || !anchorEl) return;
+  hideFab();
+  activeWordAction = { word, url };
+
+  const currentItem = pageVocabulary.find(
+    (item) => item.word.toLowerCase() === word.toLowerCase() && item.url === url
+  );
+  setWordActionSelectedColor(currentItem ? currentItem.color : null);
+
+  const rect = anchorEl.getBoundingClientRect();
+  wordActionBubble.style.display = 'flex';
+  const bubbleWidth = wordActionBubble.offsetWidth || 240;
+  const bubbleHeight = wordActionBubble.offsetHeight || 32;
+
+  let left = rect.left + (rect.width / 2) - (bubbleWidth / 2);
+  let top = rect.top - bubbleHeight - 8;
+
+  if (left < 10) left = 10;
+  if (left + bubbleWidth > window.innerWidth - 10) left = window.innerWidth - bubbleWidth - 10;
+  if (top < 0) top = rect.bottom + 8;
+
+  wordActionBubble.style.left = `${left + window.scrollX}px`;
+  wordActionBubble.style.top = `${top + window.scrollY}px`;
+}
+
+function hideWordActionBubble() {
+  if (!wordActionBubble) return;
+  wordActionBubble.style.display = 'none';
+  activeWordAction = null;
+}
+
+function speakWord(word) {
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    return;
+  }
+
+  chrome.storage.local.get(['sourceLanguage'], (settings) => {
+    const utterance = new SpeechSynthesisUtterance(word);
+    if (settings.sourceLanguage && settings.sourceLanguage !== 'auto') {
+      utterance.lang = settings.sourceLanguage;
+    }
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
   });
 }
 
@@ -637,15 +851,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.disabled) {
       // Remove features
       hideFab();
+      hideWordActionBubble();
       removeHighlightsFromPage();
       const container = document.getElementById('vb-fab-container');
       if (container) container.remove();
+      const menu = document.getElementById('vb-word-menu');
+      if (menu) menu.remove();
       fab = null;
+      wordActionBubble = null;
       if (observer) observer.disconnect();
     } else {
       // Enable features
       if (!fab) {
         createFAB();
+        createWordActionBubble();
         loadSavedWords();
       }
     }
@@ -691,7 +910,11 @@ function refreshVocabularyFromStorage() {
 document.addEventListener('mouseup', (e) => {
   if (!chrome.runtime?.id) return;
   // If clicking on the FAB or popup, ignore
-  if ((fab && fab.contains(e.target)) || (popup && popup.contains(e.target))) {
+  if (
+    (fab && fab.contains(e.target)) ||
+    (wordActionBubble && wordActionBubble.contains(e.target)) ||
+    (popup && popup.contains(e.target))
+  ) {
     return;
   }
 
