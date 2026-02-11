@@ -754,18 +754,34 @@ function hideWordActionBubble() {
 }
 
 function speakWord(word) {
-  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+  if (!word || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
     return;
   }
 
-  chrome.storage.local.get(['sourceLanguage'], (settings) => {
-    const utterance = new SpeechSynthesisUtterance(word);
-    if (settings.sourceLanguage && settings.sourceLanguage !== 'auto') {
-      utterance.lang = settings.sourceLanguage;
+  // Extension may be reloaded while content script is still alive.
+  if (!chrome.runtime?.id || !chrome.storage?.local) {
+    return;
+  }
+
+  try {
+    chrome.storage.local.get(['sourceLanguage'], (settings) => {
+      if (chrome.runtime.lastError || !chrome.runtime?.id) {
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(word);
+      if (settings.sourceLanguage && settings.sourceLanguage !== 'auto') {
+        utterance.lang = settings.sourceLanguage;
+      }
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    });
+  } catch (error) {
+    if (error && String(error.message || error).includes('context invalidated')) {
+      return;
     }
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  });
+    console.warn('speakWord failed:', error);
+  }
 }
 
 function undoHighlight(wrapper) {
