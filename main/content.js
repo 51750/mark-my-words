@@ -769,35 +769,46 @@ function hideWordActionBubble() {
   activeWordAction = null;
 }
 
-function speakWord(word) {
-  if (!word || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-    return;
-  }
-
-  // Extension may be reloaded while content script is still alive.
-  if (!chrome.runtime?.id || !chrome.storage?.local) {
+async function speakWord(word) {
+  if (!word || !chrome.runtime?.id || !chrome.storage?.local) {
     return;
   }
 
   try {
-    chrome.storage.local.get(['sourceLanguage'], (settings) => {
-      if (chrome.runtime.lastError || !chrome.runtime?.id) {
-        return;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(word);
-      if (settings.sourceLanguage && settings.sourceLanguage !== 'auto') {
-        utterance.lang = settings.sourceLanguage;
-      }
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
+    const settings = await chrome.storage.local.get(['sourceLanguage']);
+    const sourceLang = settings.sourceLanguage && settings.sourceLanguage !== 'auto' ? settings.sourceLanguage : '';
+    const response = await chrome.runtime.sendMessage({
+      action: 'speak',
+      text: word,
+      lang: sourceLang
     });
+
+    if (response && response.audioUrl) {
+      await playPronunciationAudio(response.audioUrl);
+      return;
+    }
   } catch (error) {
     if (error && String(error.message || error).includes('context invalidated')) {
       return;
     }
-    console.warn('speakWord failed:', error);
   }
+
+  fallbackSpeakWord(word);
+}
+
+async function playPronunciationAudio(url) {
+  const audio = new Audio(url);
+  await audio.play();
+}
+
+function fallbackSpeakWord(word) {
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(word);
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
 }
 
 function undoHighlight(wrapper) {
