@@ -1,5 +1,7 @@
 # Mark My Words
 
+[![Install Chrome Extension](screenshot/badge.png)](https://chromewebstore.google.com/detail/mark-my-words-highlightin/kjbggdglhpbimjddceihglkihgohedca)
+
 ![Mark My Words Demo](screenshot/page.png)
 ![Screenshot](screenshot/screenshot.png)
 
