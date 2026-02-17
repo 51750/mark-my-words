@@ -8,8 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('reset-btn');
   const autoTranslateToggle = document.getElementById('auto-translate-toggle');
   const whitelistModeToggle = document.getElementById('whitelist-mode-toggle');
+  const appVersion = document.getElementById('app-version');
 
   let currentPalette = ['#10b981', '#f59e0b', '#ef4444'];
+
+  if (appVersion && chrome.runtime?.getManifest) {
+    const manifest = chrome.runtime.getManifest();
+    appVersion.textContent = `v${manifest.version}`;
+  }
 
   // Load saved settings
   chrome.storage.local.get(['themeColor', 'colorPalette', 'autoTranslate', 'whitelistMode'], (result) => {
