@@ -10,6 +10,7 @@
 -   **Inline Translation**: View translations instantly by hovering over highlighted words.
 -   **Multi-Color Organization**: Choose from a customizable color palette when marking words to organize by category, difficulty, or any system you prefer.
 -   **Site-Specific Disabling**: Easily disable the extension on specific websites directly from the popup. Great for avoiding interference on sensitive or complex sites.
+-   **Allowlist Mode**: In settings, switch to allowlist mode to disable the extension on all sites by default and only enable selected sites.
 -   **Smart Management**:
     -   **Edit**: Click the translation label to modify it instantly.
     -   **Word Action Bubble**: Click a highlighted word to open a floating action bubble for delete, recolor, and pronunciation.
@@ -18,6 +19,7 @@
 -   **Auto-Translate Mode**: Automatically translate selected words using Google Translate API (default).
 -   **Manual Mode**: Disable auto-translate in settings to enter your own custom translations via prompt.
 -   **Language Selection**: Choose both source and target languages, with auto-detection available for source language.
+-   **Pronunciation Audio Source**: Pronunciation uses the Free Dictionary API audio endpoint first, then falls back to browser speech synthesis when no audio is available.
 
 ### Organization & Customization
 -   **Settings Page**: Centralized configuration for all extension preferences:
@@ -74,7 +76,8 @@
 2.  **Customize Theme**: Choose your preferred primary color for the extension UI.
 3.  **Manage Colors**: Add or remove colors from your marking palette.
 4.  **Translation Mode**: Toggle auto-translate on/off based on your preference.
-5.  **Reset**: Use the factory reset button to restore default settings if needed.
+5.  **Site Mode**: Toggle allowlist mode for default-off site behavior.
+6.  **Reset**: Use the factory reset button to restore default settings if needed.
 
 ### On-Page Interactions
 
@@ -102,6 +105,10 @@ The project is built with vanilla HTML/CSS/JS for maximum performance and zero d
 ### Building
 
 No build step is required! Just edit the files and click the **Refresh** icon on the extension card in `chrome://extensions/` to see changes.
+
+## 📋 Changelog
+
+See `CHANGELOG.md` for version history and release notes.
 
 ## 🤝 Contributing
 
