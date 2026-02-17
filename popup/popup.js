@@ -102,9 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const hostname = url.hostname;
 
         // Check if current site is disabled
-        chrome.storage.local.get(['disabledSites'], (result) => {
-          const disabledSites = result.disabledSites || [];
-          const isDisabled = disabledSites.includes(hostname);
+        chrome.storage.local.get(['disabledSites', 'enabledSites', 'whitelistMode'], (result) => {
+          const isDisabled = isSiteDisabled(hostname, result);
           updateDisableBtnUI(isDisabled);
 
           // Add listener for clicking disable button
@@ -160,7 +159,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleSiteDisabled(hostname) {
-    chrome.storage.local.get(['disabledSites'], (result) => {
+    chrome.storage.local.get(['disabledSites', 'enabledSites', 'whitelistMode'], (result) => {
+      const isWhitelistMode = result.whitelistMode === true;
+
+      if (isWhitelistMode) {
+        let enabledSites = result.enabledSites || [];
+        const isEnabled = enabledSites.includes(hostname);
+        if (isEnabled) {
+          enabledSites = enabledSites.filter(s => s !== hostname);
+        } else {
+          enabledSites.push(hostname);
+        }
+
+        chrome.storage.local.set({ enabledSites }, () => {
+          const nowDisabled = !enabledSites.includes(hostname);
+          updateDisableBtnUI(nowDisabled);
+
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                action: 'toggleExtension',
+                disabled: nowDisabled
+              }).catch(() => {
+                // Tab might not have content script loaded
+              });
+            }
+          });
+        });
+        return;
+      }
+
       let disabledSites = result.disabledSites || [];
       const isDisabled = disabledSites.includes(hostname);
 
@@ -187,6 +215,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     });
+  }
+
+  function isSiteDisabled(hostname, storageResult) {
+    const isWhitelist = storageResult.whitelistMode === true;
+    if (isWhitelist) {
+      const enabledSites = storageResult.enabledSites || [];
+      return !enabledSites.includes(hostname);
+    }
+    const disabledSites = storageResult.disabledSites || [];
+    return disabledSites.includes(hostname);
   }
 
   // Toggle Listener

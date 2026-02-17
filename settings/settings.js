@@ -7,11 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('back-btn');
   const resetBtn = document.getElementById('reset-btn');
   const autoTranslateToggle = document.getElementById('auto-translate-toggle');
+  const whitelistModeToggle = document.getElementById('whitelist-mode-toggle');
 
   let currentPalette = ['#10b981', '#f59e0b', '#ef4444'];
 
   // Load saved settings
-  chrome.storage.local.get(['themeColor', 'colorPalette', 'autoTranslate'], (result) => {
+  chrome.storage.local.get(['themeColor', 'colorPalette', 'autoTranslate', 'whitelistMode'], (result) => {
     if (result.themeColor) {
       themeColorInput.value = result.themeColor;
       themeColorValue.textContent = result.themeColor.toUpperCase();
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.autoTranslate !== undefined) {
       autoTranslateToggle.checked = result.autoTranslate;
     }
+    whitelistModeToggle.checked = result.whitelistMode === true;
     renderPalette();
   });
 
@@ -63,6 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Popup might not be open, that's okay
       });
     });
+  });
+
+  whitelistModeToggle.addEventListener('change', (e) => {
+    chrome.storage.local.set({ whitelistMode: e.target.checked });
   });
 
   function renderPalette() {
@@ -115,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sourceLanguage: 'auto',
         targetLanguage: 'zh-CN',
         autoTranslate: true,
+        whitelistMode: false,
         disabledSites: []
       };
 
@@ -126,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPalette = defaultSettings.colorPalette;
         renderPalette();
         autoTranslateToggle.checked = defaultSettings.autoTranslate;
+        whitelistModeToggle.checked = defaultSettings.whitelistMode;
 
         // Notify all tabs
         notifyUpdate('updateColor', defaultSettings.themeColor);

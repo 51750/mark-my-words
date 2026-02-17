@@ -16,11 +16,17 @@ let wordActionListenersAttached = false;
 
 // Initialize styles and elements
 function init() {
-  chrome.storage.local.get(['disabledSites'], (result) => {
+  chrome.storage.local.get(['disabledSites', 'enabledSites', 'whitelistMode'], (result) => {
     const disabledSites = result.disabledSites || [];
+    const enabledSites = result.enabledSites || [];
+    const whitelistMode = result.whitelistMode === true;
     const currentHostname = window.location.hostname;
 
-    if (disabledSites.includes(currentHostname)) {
+    const isDisabled = whitelistMode
+      ? !enabledSites.includes(currentHostname)
+      : disabledSites.includes(currentHostname);
+
+    if (isDisabled) {
       console.log('Mark My Words is disabled on this site.');
       return;
     }
